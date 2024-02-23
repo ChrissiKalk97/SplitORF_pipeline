@@ -1,0 +1,14 @@
+sed -i '' 's/HG1395_PATCH/5/g' $1 
+sed -i '' 's/HG1398_PATCH/12/g' $1
+sed -i '' 's/HG28_PATCH/11/g' $1
+sed -i '' 's/HG1320_PATCH/17/g' $1
+sed -i '' 's/HG109_PATCH/19/g' $1
+sed -i '' 's/HG2087_PATCH/17/g' $1
+sed -i '' 's/HG2471_PATCH/16/g' $1
+sed -i '' 's/HG2198_PATCH/15/g' $1
+sed -i '' 's/HG2115_PATCH/11/g' $1
+sed -i '' 's/HG705_PATCH/4/g' $1
+sed -i '' 's/HG1524_PATCH/13/g' $1
+sed -i '' 's/HG1309_PATCH/7/g' $1
+sed -i '' 's/HG2111_PATCH/11/g' $1
+sed -i '' 's/HG2246_HG2248_HG2276_PATCH/12/g' $1

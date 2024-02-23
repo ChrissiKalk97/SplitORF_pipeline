@@ -1,0 +1,295 @@
+#HOW TO USE EXTENDED PIPELINE NEW VERSION, 03.11.23
+New data: Ensembl genes 110, GRCh38.p14 (July 2023)
+
+
+
+1) Download cDNA protein coding sequences sequences such that, filters: Gene and Transcripts protein coding
+attributes: gene stable ID, transcript stable ID, cDNA sequences-> download sequences as fasta
+
+
+2) download NMD transcripts: Filters: Transcript type: nonsense_mediated_decay
+attributes: gene stable ID, transcript stable ID, cDNA sequences-> download sequences as fasta
+
+
+3) Download  protein coding sequences protein such that, filters: Gene and Transcripts protein coding
+attributes: gene stable ID, transcript stable ID, peptide sequences-> download sequences as fasta
+
+ 4) download annotation in tsv format: Transcript and gene type: protein coding GENCODE basic annotation
+ ATTRIBUTES: gene stable ID, Transcripts stable ID, Chr/scaffold name, Transcripts start (bp), Transcripts end (bp), Strand
+Filters: NMD transcripts
+HOW TO TRANSFORM INTO A BED FILE???
+convertEnsemblCHRanno2Bed.py (umgeschrieben, so dass alle Felder des txt download files beibehalten bleiben, in der gelichen Reihenfolge)
+python convertEnsemblCHRanno2Bed.py GenomicAnno_NMD.tsv > GenomicAnno_NMD_own_script.bed
+
+5) Exon Positions of the whole genome: Structures, no filters
+ATTRIBUTES: Gene stable ID, Transcript stable ID, Exon start, Exon end, Transcript start, Transcript End, Strand
+Delete Header
+python ../Genomic_scripts/ExonPosFile.py Exon_positions_Ensembl.txt Exon_positions_Ensembl.bed
+
+
+6) Select GeneID, Transcript ID, PFAM ID, PFAM start and PFAM end
+make new annotation: python ../SplitOrfs-master/convertEnsemblOutput2Bed.py EnsemblPFAMhuman2023.txt > EnsemblPFAMhuman2023.bed
+
+#so we need these 6 arguments
+#downloaded seqkit sort (available at: https://bioinf.shenwei.me/seqkit/download/)
+#PROTEIN SEQUENCES
+seqkit sort --quiet -2  protein_coding_peptide_sequences.fa > ID_sorted_protein_coding_peptide_seqs.fa
+#DNA SEQUENCES
+seqkit sort --quiet -2  protein_coding_transcript_and_gene_cDNA.fa > ID_sorted_protein_coding_transcript_and_gene_cDNA.fa
+
+#get longest isoforms with lonest isoform script:
+python ./Uniqueness_scripts/getLongestIsoform.py ID_sorted_protein_coding_peptide_seqs.fa longest_isoform_proteins.fa
+
+python ./Uniqueness_scripts/getLongestIsoform.py  ID_sorted_protein_coding_transcript_and_gene_cDNA.fa longest_isoform_trasncripts.fa
+
+
+
+ #RUN WITH FILES FROM JUSTINS INPUT FOLDER
+
+
+bash ../run_pipeline.sh ../Input/protein_coding_protein_grch38_p13.fa ../Input/NMD_transcripts.fa Ensembl95HumanProteinPFAM.bed \
+../Input/longest_protein_coding_protein_grch38_p13.fa ../Input/longest_protein_coding_DNA_grch38_p13.fa ../Input/NMD_transcript_positions_with_chr.bed ../Exon_positions_Ensembl.bed
+
+NOTE this is my exon position file as it is not present in the Input folder with the old Input...
+
+
+###RUN WITH OWN INPUT
+bash ./run_pipeline.sh ./My_input/protein_coding_peptide_sequences.fa ./My_input/NMD_transcripts_CDNA.fa ./My_input/EnsemblPFAMhuman2023.bed ./My_input/longest_isoform_proteins.fa ./My_input/longest_isoform_trasncripts.fa ./My_input/GenomicAnno_NMD_own_script.bed ./My_input/Exon_positions_Ensembl.bed
+
+bash ../run_pipeline.sh ./protein_coding_peptide_sequences.fa ../NMD_transcripts_CDNA.fa ./EnsemblPFAMhuman2023.bed ./longest_isoform_proteins.fa ./longest_isoform_trasncripts.fa ./GenomicAnno_NMD_own_script.bed ./Exon_positions_Ensembl.bed
+
+
+
+04.11.23
+#RUN WITH NEW FILES JUSTIN UPLOADED TO GITHUB
+./run_pipeline.sh ./InputPipeline/Protein_coding_peptide.fa ./InputPipeline/NMD_transcripts.fa ./InputPipeline/ENSEMBL104annotationPFAMhuman.bed ./InputPipeline/longest_protein_coding_DNA.fa ./InputPipeline/longest_protein_coding_peptide.fa ./InputPipeline/All_genomic.bed ./InputPipeline/All_Exon_positions_with_strand.bed
+
+
+10.11.23
+#DOWLOAD NEW ENSEMBL FILES FROM SCRATCH: FOLDER Input2023
+-> no filters for genomic_positions.bed and exons.bed, just download tsv file and rename to bed
+
+4) download annotation in tsv format genomic positions: 
+choose FEATURES
+ ATTRIBUTES: gene stable ID, Transcripts stable ID, Chr/scaffold name, Transcripts start (bp), Transcripts end (bp), Strand
+no filters, just rename into .bed: Genomic_positions.bed
+
+5) Exon Positions of the whole genome: Structures, no filters
+ATTRIBUTES: Gene stable ID, Transcript stable ID, Exon start, Exon end, Transcript start, Transcript End, Strand
+-> rename into bed: ExonPositions.bed
+
+6) Select Transcript ID,  PFAM start and PFAM end, PFAM ID
+choose FEATURES
+-> rename into bed: Ensemblannotation110HumanPfam.bed
+
+
+./run_pipeline.sh ./Input2023/protein_coding_peptide_sequences.fa ./Input2023/NMD_transcripts_CDNA.fa ./Input2023/Ensemblannotation110HumanPfam.bed ./Input2023/longest_isoform_trasncripts.fa ./Input2023/longest_isoform_proteins.fa ./Input2023/Genomic_positions.bed ./Input2023/ExonPositions.bed
+
+funktioniert nicht: Fehler mit der annotation Datei: 
+Blast the non-unique regions against the DB
+Select the valid ORFs
+Add functional overlap (PFAM)
+ERROR: Received illegal bin number -1 from getBin call.
+Maximum values is: 2396745
+This typically means that your coordinates are
+negative or too large to represent in the data
+structure bedtools uses to find intersections.ERROR: Unable to add record to tree.
+
+Google: often because not tab delimited: https://github.com/arq5x/bedtools2/issues/596
+
+Idea: redownload data in format
+Features
+GeneID TranscriptID PFAM ID PFAM start PFAM end
+use Marcels script to convert: 
+python ./SplitOrfs-master/convertEnsemblOutput2Bed.py ./Input2023/ENSEMBLhuman110PFAMformatMarcel.txt > ENSEMBLhuman110PFAMformatMarcel.bed
+move ENSEMBLhuman110PFAMformatMarcel.bed into Input2023 folder
+-> aus Versehen Protein satble ID gedwonloaded :/
+DELETE HEADER
+
+./run_pipeline.sh ./Input2023/protein_coding_peptide_sequences.fa ./Input2023/NMD_transcripts_CDNA.fa ./Input2023/ENSEMBLhuman110PFAMformatMarcel.bed ./Input2023/longest_isoform_trasncripts.fa ./Input2023/longest_isoform_proteins.fa ./Input2023/Genomic_positions.bed ./Input2023/ExonPositions.bed
+
+-> Now runs without problems until:
+Change the positions to their genomic equivalent and transform into UCSC format
+Traceback (most recent call last):
+  File "./Genomic_scripts/ExonPosFile.py", line 7, in <module>
+    if int(elems[6]) == 1:
+ValueError: invalid literal for int() with base 10: 'Strand'
+
+-> Need to delete the header of ExonPos file
+
+
+13.11.23 
+Noticed that run_pipeline.sh is different than in ExtendedSplitORFPipeline-master folder, redownload the githbu repo and add the repos InputPipeline and Input2023 from ExtendedSplitORFPipeline-master
+-> new folder is named ExtendedSplitORFPipeline-master_13_11_23
+
+##first run again with Justins Input 
+./run_pipeline.sh ./InputPipeline/Protein_coding_peptide.fa ./InputPipeline/NMD_transcripts.fa ./InputPipeline/ENSEMBL104annotationPFAMhuman.bed ./InputPipeline/longest_protein_coding_DNA.fa ./InputPipeline/longest_protein_coding_peptide.fa ./InputPipeline/All_genomic.bed ./InputPipeline/All_Exon_positions_with_strand.bed
+
+
+Quitting from lines 16-45 [basic stats] (Split-ORF_Report.Rmd)
+Error in `file()`:
+! cannot open the connection
+Backtrace:
+
+1. seqinr::read.fasta(file3)
+2. base::readLines(file)
+3. base::file(con, "r")
+Execution halted
+
+##need to remove . in front of the reltive path to the transcripts file, otherwise this file cannot be found when the path is put together
+transcripts_R="${transcripts:1}"
+echo "$transcripts_R"
+#R -e "rmarkdown::render('Split-ORF_Report.Rmd',output_file='./Output/run_$timestamp/Split-ORF_Report.html',params=list(args = c('/Output/run_$timestamp/ValidProteinORFPairs.txt','/Output/run_$timestamp/UniqueProteinORFPairs_annotated.txt')))"
+R -e "rmarkdown::render('Split-ORF_Report.Rmd',output_file='./Output/run_$timestamp/Split-ORF_Report.html',params=list(args = c('/Output/run_$timestamp/ValidProteinORFPairs_sortCol3.txt','/Output/run_$timestamp/UniqueProteinORFPairs_annotated.txt','$transcripts_R')))"
+
+→ change in file of run_pipeline.sh
+
+
+AND ERROR NO SUCH FILE OR DIRECTORY:
+
+Finishing Steps
+Change the positions to their genomic equivalent and transform into UCSC format
+./Genomic_scripts/GenomicToUCSC.sh: line 5: ./ScaffoldUmrechnung.sh: No such file or directory
+./Genomic_scripts/GenomicToUCSC.sh: line 6: ./chromToUcsc: No such file or directory
+cat: ./Output/run_07.11.2023-10.26.41/Unique_DNA_Regions_merged_genomic_with_chr_UCSC.bed: No such file or directory
+./Genomic_scripts/GenomicToUCSC.sh: line 5: ./ScaffoldUmrechnung.sh: No such file or directory
+./Genomic_scripts/GenomicToUCSC.sh: line 6: ./chromToUcsc: No such file or directory
+cat: ./Output/run_07.11.2023-10.26.41/Unique_Protein_Regions_merged_valid_genomic_with_chr_UCSC.bed: No such file or directory
+./Genomic_scripts/GenomicToUCSC.sh: line 5: ./ScaffoldUmrechnung.sh: No such file or directory
+./Genomic_scripts/GenomicToUCSC.sh: line 6: ./chromToUcsc: No such file or directory
+cat: ./Output/run_07.11.2023-10.26.41/Valid_ORF_Proteins_genomic_with_chr_UCSC.bed: No such file or directory
+calculate overlap between unique DNA and protein regions
+
+→ actually noticed that in the run from the 7th november, same error occurred in the log file
+
+GenomicToUCSC den code:
+source ./ScaffoldUmrechnung.sh $in
+./chromToUcsc -a ./hg38.chromAlias.tsv -i $in -o $ucOut
+
+so verändert, da es sonst die Files nicht gefunden hat:
+source ./Genomic_scripts/ScaffoldUmrechnung.sh $in
+./Genomic_scripts/chromToUcsc -a ./Genomic_scripts/hg38.chromAlias.tsv -i $in -o $ucOut
+
+→ error ist nicht mehr da, nach Veränderung der paths…
+
+#RUN AGAIN WITH OWN INPUT
+./run_pipeline.sh ./Input2023/protein_coding_peptide_sequences.fa ./Input2023/NMD_transcripts_CDNA.fa ./Input2023/ENSEMBLhuman110PFAMformatMarcel.bed ./Input2023/longest_isoform_trasncripts.fa ./Input2023/longest_isoform_proteins.fa ./Input2023/Genomic_positions.bed ./Input2023/ExonPositions.bed
+
+ERRORS:
+Quitting from lines 96-99 [orfAnnots] (Split-ORF_Report.Rmd)
+Error in `hist.default()`:
+! character(0)
+Backtrace:
+ 1. graphics::hist(...)
+ 2. graphics::hist.default(...)
+Execution halted
+
+AND
+
+Change the positions to their genomic equivalent and transform into UCSC format
+ERROR:root:line 5869: chrom name 'HSCHRX_3_CTG3' is not in chromAlias table
+ERROR:root:line 9619: chrom name 'HG2365_PATCH' is not in chromAlias table
+ERROR:root:line 16224: chrom name 'HG2365_PATCH' is not in chromAlias table
+calculate overlap between unique DNA and protein regions
+
+
+##RUN AGAIN WITH JUSTINS DATA
+./run_pipeline.sh ./InputPipeline/Protein_coding_peptide.fa ./InputPipeline/NMD_transcripts.fa ./InputPipeline/ENSEMBL104annotationPFAMhuman.bed ./InputPipeline/longest_protein_coding_DNA.fa ./InputPipeline/longest_protein_coding_peptide.fa ./InputPipeline/All_genomic.bed ./InputPipeline/All_Exon_positions_with_strand.bed
+
+-> no more errors, however, histogram in Split-ORF Report is not created
+-> it was created there was just a print statement, removed that one
+
+14.11.23
+###RUN AGAIN WITH OWN DATA
+./run_pipeline.sh ./Input2023/protein_coding_peptide_sequences.fa ./Input2023/NMD_transcripts_CDNA.fa ./Input2023/ENSEMBLhuman110PFAMformatMarcel.bed ./Input2023/longest_isoform_trasncripts.fa ./Input2023/longest_isoform_proteins.fa ./Input2023/Genomic_positions.bed ./Input2023/ExonPositions.bed
+
+
+16.11.23
+###RUN ON RI transcripts from Justin
+./run_pipeline.sh ./InputPipeline/Protein_coding_peptide.fa ./InputPipeline/RI_transcripts.fa ./InputPipeline/ENSEMBL104annotationPFAMhuman.bed ./InputPipeline/longest_protein_coding_DNA.fa ./InputPipeline/longest_protein_coding_peptide.fa ./InputPipeline/All_genomic.bed ./InputPipeline/All_Exon_positions_with_strand.bed
+
+
+###WITH NEW RI INPUT
+1) download RI transcripts
+GeneID, Transcript Id
+filter transcript type retained_intron
+cDNA sequences
+
+./run_pipeline.sh ./Input2023/protein_coding_peptide_sequences.fa ./Input2023/RI_transcripts_CDNA.fa ./Input2023/ENSEMBLhuman110PFAMformatMarcel.bed ./Input2023/longest_isoform_trasncripts.fa ./Input2023/longest_isoform_proteins.fa ./Input2023/Genomic_positions.bed ./Input2023/ExonPositions.bed
+same errors as with NMD: 
+Quitting from lines 95-98 [orfAnnots] (Split-ORF_Report.Rmd)
+Error in `hist.default()`:
+! character(0)
+Backtrace:
+ 1. graphics::hist(...)
+ 2. graphics::hist.default(...)
+Execution halted
+
+ERROR:root:line 7206: chrom name 'HG2526_HG2573_PATCH' is not in chromAlias table
+ERROR:root:line 7636: chrom name 'HG2526_HG2573_PATCH' is not in chromAlias table
+ERROR:root:line 9810: chrom name 'HG2526_HG2573_PATCH' is not in chromAlias table
+
+17.11.23
+
+Found out that error occurs with new data since there are no intersect results, and hence no UniqueProteinORFPairs_annotated.txt
+
+→ this is because annotation was in the wrong format: we need transcript ID PFAM start PFAM end PFAM ID
+
+→ redownload from Ensembl (features), rename to bed, rerun
+
+./run_pipeline.sh ./Input2023/protein_coding_peptide_sequences.fa ./Input2023/RI_transcripts_CDNA.fa ./Input2023/ENSEMBLhuman110PFAM171123.bed ./Input2023/longest_isoform_trasncripts.fa ./Input2023/longest_isoform_proteins.fa ./Input2023/Genomic_positions.bed ./Input2023/ExonPositions.bed
+
+-> wieder errror mit illegal bin call: need to use MArcel's script to convert and this time select transcript Id and no tprotein ID!!!!
+-> delete the incorrect files
+Idea: redownload data in format
+Features
+GeneID TranscriptID PFAM ID PFAM start PFAM end
+use Marcels script to convert: 
+python ./SplitOrfs-master/convertEnsemblOutput2Bed.py ./Input2023/ENSEMBLhuman110PFAMformatMarcel.txt > ./Input2023/ENSEMBLhuman110PFAMformatMarcel.bed
+THERE is no header...
+./run_pipeline.sh ./Input2023/protein_coding_peptide_sequences.fa ./Input2023/RI_transcripts_CDNA.fa ./Input2023/ENSEMBLhuman110PFAMformatMarcel.bed ./Input2023/longest_isoform_trasncripts.fa ./Input2023/longest_isoform_proteins.fa ./Input2023/Genomic_positions.bed ./Input2023/ExonPositions.bed
+
+29.11.23
+./run_pipeline_all_isoforms_mummer.sh ./Input2023/protein_coding_peptide_sequences.fa ./Input2023/RI_transcripts_CDNA.fa ./Input2023/ENSEMBLhuman110PFAMformatMarcel.bed ./Input2023/longest_isoform_trasncripts.fa ./Input2023/longest_isoform_proteins.fa ./Input2023/Genomic_positions.bed ./Input2023/ExonPositions.bed
+named: run_29.11.2023-17.21.37_new_RI_all_isoform
+
+./run_pipeline_all_isoforms_mummer.sh ./InputPipeline/Protein_coding_peptide.fa ./InputPipeline/NMD_transcripts.fa ./InputPipeline/ENSEMBL104annotationPFAMhuman.bed ./InputPipeline/longest_protein_coding_DNA.fa ./InputPipeline/longest_protein_coding_peptide.fa ./InputPipeline/All_genomic.bed ./InputPipeline/All_Exon_positions_with_strand.bed
+named: run_29.11.2023-16.09.56_justin_data_all_isofrom_matching
+
+04.12.23
+Run on NMD transcripts with new data
+./run_pipeline_all_isoforms_mummer.sh ./Input2023/protein_coding_peptide_sequences.fa ./Input2023/NMD_transcripts_CDNA.fa ./Input2023/ENSEMBLhuman110PFAMformatMarcel.bed ./Input2023/longest_isoform_trasncripts.fa ./Input2023/longest_isoform_proteins.fa ./Input2023/Genomic_positions.bed ./Input2023/ExonPositions.bed
+named: run_04.12.2023-12.22.06_new_NMD_all_isoforms
+
+Run all isoforms on Justins RI data
+./run_pipeline_all_isoforms_mummer.sh ./Input2023/protein_coding_peptide_sequences.fa ./Input2023/RI_transcripts_CDNA.fa ./Input2023/ENSEMBLhuman110PFAMformatMarcel.bed ./Input2023/longest_isoform_trasncripts.fa ./Input2023/longest_isoform_proteins.fa ./Input2023/Genomic_positions.bed ./Input2023/ExonPositions.bed
+named: run_04.12.2023-13.29.26_Justin_RI_all_isoforms
+
+
+Run from Output folder:
+ R -e "rmarkdown::render('difference_all_isoforms_vs_longest_Report.Rmd',output_file='./difference_all_isoforms_vs_longest_Report_RI_transcripts.html',params=list(args = c('/run_17.11.2023-14.22.49RI_new_splitORFreport_working/ValidProteinORFPairs_sortCol3.txt','/run_29.11.2023-17.21.37_new_RI_all_isoform/ValidProteinORFPairs_sortCol3.txt','/run_17.11.2023-14.22.49RI_new_splitORFreport_working/UniqueProteinORFPairs_annotated.txt','/run_29.11.2023-17.21.37_new_RI_all_isoform/UniqueProteinORFPairs_annotated.txt', 'RI_new')))"
+
+
+ R -e "rmarkdown::render('difference_all_isoforms_vs_longest_Report.Rmd',output_file='./difference_all_isoforms_vs_longest_Report_NMD_transcripts.html',params=list(args = c('/run_17.11.2023-16.46.33_new_splitORFreportworking_NMD/ValidProteinORFPairs_sortCol3.txt','/run_04.12.2023-12.22.06_new_NMD_all_isoforms/ValidProteinORFPairs_sortCol3.txt','/run_17.11.2023-16.46.33_new_splitORFreportworking_NMD/UniqueProteinORFPairs_annotated.txt','/run_04.12.2023-12.22.06_new_NMD_all_isoforms/UniqueProteinORFPairs_annotated.txt', 'NMD_new')))"
+
+
+ R -e "rmarkdown::render('difference_all_isoforms_vs_longest_Report.Rmd',output_file='./difference_all_isoforms_vs_longest_Report_NMD_transcripts.html',params=list(args = c('/run_13.11.2023-14.56.21_justin/ValidProteinORFPairs_sortCol3.txt','/run_29.11.2023-16.09.56_justin_data_all_isofrom_matching/ValidProteinORFPairs_sortCol3.txt','/run_13.11.2023-14.56.21_justin/UniqueProteinORFPairs_annotated.txt','/run_29.11.2023-16.09.56_justin_data_all_isofrom_matching/UniqueProteinORFPairs_annotated.txt', 'NMD_old')))"
+
+
+
+06.12.23
+Run on NMD transcripts with new data remove longest isoforms from DNA sequences and take all instead
+./run_pipeline_all_isoforms_mummer.sh ./Input2023/protein_coding_peptide_sequences.fa ./Input2023/NMD_transcripts_CDNA.fa ./Input2023/ENSEMBLhuman110PFAMformatMarcel.bed ./Input2023/protein_coding_transcript_and_gene_cDNA.fa ./Input2023/longest_isoform_proteins.fa ./Input2023/Genomic_positions.bed ./Input2023/ExonPositions.bed
+-> named: run_06.12.2023-17.08.35_new_NMD_all_isoforms_DNA_and_protein
+
+
+
+18.12.23
+###RUN AGAIN WITH OWN DATA AFTER CHANGING THE CHROM ALIAS file: chromAlias_38p14_18_12_23.tsv and check whether no more errors occur!
+./run_pipeline.sh ./Input2023/protein_coding_peptide_sequences.fa ./Input2023/NMD_transcripts_CDNA.fa ./Input2023/ENSEMBLhuman110PFAMformatMarcel.bed ./Input2023/longest_isoform_trasncripts.fa ./Input2023/longest_isoform_proteins.fa ./Input2023/Genomic_positions.bed ./Input2023/ExonPositions.bed
+
+-> no errors anymore, changed output folder name to: run_18.12.2023-10.14.23_new_NMD_longest_isoforms_with_UCSC
+
+
+###RUN AGAIN WITH OWN DATA AFTER CHANGING THE CHROM ALIAS file: chromAlias_38p14_18_12_23.tsv and check whether no more errors occur!
+./run_pipeline.sh ./Input2023/protein_coding_peptide_sequences.fa ./Input2023/RI_transcripts_CDNA.fa ./Input2023/ENSEMBLhuman110PFAMformatMarcel.bed ./Input2023/longest_isoform_trasncripts.fa ./Input2023/longest_isoform_proteins.fa ./Input2023/Genomic_positions.bed ./Input2023/ExonPositions.bed
