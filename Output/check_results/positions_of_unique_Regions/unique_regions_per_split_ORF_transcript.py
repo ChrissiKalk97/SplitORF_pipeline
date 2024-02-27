@@ -48,7 +48,27 @@ def main():
     unique_regions["unique_percent"] = unique_regions["stop_percent"] - unique_regions["start_percent"]
 
     #count number of ORFs per source transcript
-    unique_regions['ORFcounter'] = unique_regions.groupby(['NMD_transcript']).cumcount()+1
+    unique_regions['ORFcounter'] = 1
+    unique_regions['nr_unique_regon'] = unique_regions.groupby(['NMD_transcript', 'protAlignPos_start']).cumcount()+1
+
+    def count_ORFs(unique_regions: pd.DataFrame) -> pd.DataFrame:
+        unique_regions.groupby(['NMD_transcript'])
+        previous_transcript = unique_regions.iloc[0, 3]
+        previous_alignment_start = unique_regions.iloc[0, 1]
+        for i in range(1, len(unique_regions['NMD_transcript'])):
+            current_transcript = unique_regions.iloc[i, 3]
+            current_alignment_start = unique_regions.iloc[i, 1]
+            if current_transcript == previous_transcript and current_alignment_start  == previous_alignment_start:
+                unique_regions.iloc[i, 14] = unique_regions.iloc[i-1, 14]
+            elif current_transcript == previous_transcript:
+                unique_regions.iloc[i, 14] = unique_regions.iloc[i-1, 14] + 1
+            previous_alignment_start = current_alignment_start
+            previous_transcript = current_transcript
+        return unique_regions
+    
+    unique_regions = count_ORFs(unique_regions)
+    print(unique_regions.head(50))
+    print(unique_regions.tail(50))
     
     #indicate whether first ORF is True = 1, or if it is last ORF = -1 or intermediate = 0
     unique_regions['firstORF'] = 0
@@ -58,6 +78,10 @@ def main():
     
     unique_regions['ORFcounter'] = unique_regions['ORFcounter'].astype('category')
     unique_regions['firstORF'] = unique_regions['firstORF'].astype('category')
+
+    print("Later")
+    print(unique_regions.iloc[:,[1,2,5,6,7,8,9,10]].head(50))
+    print(unique_regions.tail(50))
 
     #get dataframe of cases to inspect more closely
     weird_cases_first_orf = unique_regions[(unique_regions['firstORF'] == 1) & (unique_regions["start_percent"]  < 0.01)]
