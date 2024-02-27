@@ -19,28 +19,21 @@ import matplotlib.pyplot as plt
 
 def main():
     valid_ORFs = pd.read_csv(sys.argv[1], sep =":|\t", header = None,\
-            names = ["target", "protAlignPos_start", "protAlignPos_end", "NMD_transcript", "ORF_nr"])
+            names = ["target", "protAlignPos_start", "protAlignPos_end", "NMD_transcript", "ORF_nr"], engine='python')
     #UniqueProteinMatches.bed
-    print(valid_ORFs.head())
-    print(len(valid_ORFs["ORF_nr"]))
 
     unique_regions = pd.read_csv(sys.argv[2], sep =":|\t", \
         names=["gene_transcript", "ORF_nr", "ORF_start", "ORF_end", "unique_start", "unique_end"],\
             engine='python')
-    print(unique_regions.head())
-    print(len(unique_regions["ORF_nr"]))
 
-    #print("shit", [r for r in unique_regions["ORF_nr"].unique() if r not in valid_ORFs["ORF_nr"].unique()])
-    
+    #unique regions were filtered by all valid ORFs not the best protein match filtered ones
+    #need to filter for the best matches
     unique_regions = pd.merge(valid_ORFs, unique_regions, on="ORF_nr", how="outer")
     unique_regions = unique_regions[unique_regions['protAlignPos_start'].notnull()]
-    #unique_regions["ORF_start"] = unique_regions["ORF_start"].astype(int)
-    #unique_regions["protAlignPos_start"] = unique_regions["protAlignPos_start"].astype(int)
+
     unique_regions = unique_regions.sort_values(['NMD_transcript', 'protAlignPos_start'])
-    print(unique_regions.head())
-    print(unique_regions.tail())
     
-    
+    transcript_type = sys.argv[4]
     region_type = sys.argv[3]
     if region_type == "protein":
         unique_regions["ORF_length"] = (unique_regions["ORF_end"] - unique_regions["ORF_start"])/3#protein coordinates
@@ -52,47 +45,71 @@ def main():
 
     unique_regions["start_percent"] = (unique_regions["unique_start"])/unique_regions["ORF_length"]
     unique_regions["stop_percent"] = (unique_regions["unique_end"])/unique_regions["ORF_length"]
+    unique_regions["unique_percent"] = unique_regions["stop_percent"] - unique_regions["start_percent"]
 
-
+    #count number of ORFs per source transcript
     unique_regions['ORFcounter'] = unique_regions.groupby(['NMD_transcript']).cumcount()+1
-    print(unique_regions.head())
-    print(unique_regions.tail())
-    unique_regions['ORFcounter'] = unique_regions['ORFcounter'].astype('category')
     
+    #indicate whether first ORF is True = 1, or if it is last ORF = -1 or intermediate = 0
+    unique_regions['firstORF'] = 0
+    unique_regions.loc[unique_regions['ORFcounter'] == 1, 'firstORF'] = 1
+    indices = unique_regions.groupby(['NMD_transcript'])['ORFcounter'].transform(max) == unique_regions['ORFcounter']
+    unique_regions.loc[indices, 'firstORF'] = -1
+    
+    unique_regions['ORFcounter'] = unique_regions['ORFcounter'].astype('category')
+    unique_regions['firstORF'] = unique_regions['firstORF'].astype('category')
 
-    transcript_type = sys.argv[4]
+    #get dataframe of cases to inspect more closely
+    weird_cases_first_orf = unique_regions[(unique_regions['firstORF'] == 1) & (unique_regions["start_percent"]  < 0.01)]
+    weird_cases_last_orf = unique_regions[(unique_regions['firstORF'] == -1) & (unique_regions["stop_percent"]  > 0.99)]
+    weird_cases_first_orf.to_csv(f'first_orf_unique_beginning_{region_type}_{transcript_type}.csv')
+    weird_cases_last_orf.to_csv(f'last_orf_unique_end_{region_type}_{transcript_type}.csv') 
 
 
+
+    #plotting of all ORFs
     palette = sbn.color_palette("tab10") + sbn.color_palette("viridis", n_colors = 15)
     sbn.histplot(data = unique_regions, x = 'stop_percent', hue = 'ORFcounter', multiple="stack",\
                   palette=palette)\
         .set(title=f'Histogram of end positions of unique {transcript_type}_{region_type} regions, by ORF number')
-    plt.savefig(f"unique_regions_by_ORF_number/stop_positions_hist_by_ORF_number_{transcript_type}_{region_type}_stack.png")
+    plt.savefig(f"unique_regions_by_ORF_number/unique_regions_stop_positions_hist_by_ORF_number_{transcript_type}_{region_type}_stack.png")
     plt.close()
 
     sbn.histplot(x = unique_regions["start_percent"], hue = unique_regions['ORFcounter'], multiple="stack", \
                   palette=palette)\
         .set(title=f'Histogram of start positions of unique {transcript_type}_{region_type} regions, by ORF number')
-    plt.savefig(f"unique_regions_by_ORF_number/start_positions_hist_by_ORF_number_{transcript_type}_{region_type}_stack.png")
+    plt.savefig(f"unique_regions_by_ORF_number/unique_regions_start_positions_hist_by_ORF_number_{transcript_type}_{region_type}_stack.png")
     plt.close()
 
-    sbn.histplot(data = unique_regions, x = 'stop_percent', hue = 'ORFcounter', multiple="dodge", binwidth=0.8, \
+   
+
+
+    #plotting accroding to first and last ORF
+    sbn.histplot(data = unique_regions, x = 'stop_percent', hue = 'firstORF', multiple="stack",\
                   palette=palette)\
-        .set(title=f'Histogram of end positions of unique {transcript_type}_{region_type} regions, by ORF number')
-    plt.savefig(f"unique_regions_by_ORF_number/stop_positions_hist_by_ORF_number_{transcript_type}_{region_type}_dodge.png")
+        .set(title=f'Histogram of end positions of unique {transcript_type}_{region_type} regions, by first/last ORF')
+    plt.savefig(f"unique_regions_by_ORF_number/unique_regions_stop_positions_hist__{transcript_type}_{region_type}_first_last_ORF_stack.png")
     plt.close()
 
-    sbn.histplot(x = unique_regions["start_percent"], hue = unique_regions['ORFcounter'], multiple="dodge", binwidth=0.8, palette = palette)\
-        .set(title=f'Histogram of start positions of unique {transcript_type}_{region_type} regions, by ORF number')
-    
-    plt.savefig(f"unique_regions_by_ORF_number/start_positions_hist_by_ORF_number_{transcript_type}_{region_type}_dodge.png")
+    sbn.histplot(x = unique_regions["start_percent"], hue = unique_regions['firstORF'], multiple="stack", \
+                  palette=palette)\
+        .set(title=f'Histogram of start positions of unique {transcript_type}_{region_type} regions, by first/last ORF')
+    plt.savefig(f"unique_regions_by_ORF_number/unique_regions_start_positions_hist_{transcript_type}_{region_type}_first_last_ORF_stack.png")
     plt.close()
 
 
+
+    #plotting of general info unique regions per ORF
     sbn.histplot(unique_regions.groupby("NMD_transcript").count()["ORF_nr"], binwidth=0.8)\
         .set(title=f'Number of unique regions per transcript',\
               xlabel="Nr of unique regions per transcript")
     plt.savefig(f"unique_regions_by_ORF_number/nr_of_unique_{region_type}_regions_per_transcripts_{transcript_type}.png")
+    plt.close()
+
+    sbn.histplot(data = unique_regions, x = 'unique_percent', hue = 'firstORF', multiple="stack",\
+                  palette=palette)\
+        .set(title=f'Histogram of  unique percentage of per ORF {transcript_type}_{region_type} regions, by first/last ORF')
+    plt.savefig(f"unique_regions_by_ORF_number/unique_region_percentage_{transcript_type}_{region_type}_first_last_ORF_stack.png")
     plt.close()
 
 
