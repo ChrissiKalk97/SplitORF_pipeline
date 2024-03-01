@@ -86,18 +86,18 @@ sortedbamfile=$(echo $bamfile | rev | cut -f 2- -d '.' | rev)_sorted.bam
 samtools sort -@ 10 $bamfile > $sortedbamfile
 samtools index -@ 10 $sortedbamfile
 
-echo "calculating coverage"
-bigwigfile=$(echo $bamfile | rev | cut -f 2- -d '.' | rev)_coverage.bigwig
-bamCoverage -p max/2 -b $sortedbamfile -o $bigwigfile -of bigwig
-bedgraphfile=$(echo $bamfile | rev | cut -f 2- -d '.' | rev)_coverage.bedgraph
-bamCoverage -p max/2 -b $sortedbamfile -o $bedgraphfile -of bedgraph
+#echo "calculating coverage"
+#bigwigfile=$(echo $bamfile | rev | cut -f 2- -d '.' | rev)_coverage.bigwig
+#bamCoverage -p max/2 -b $sortedbamfile -o $bigwigfile -of bigwig
+#bedgraphfile=$(echo $bamfile | rev | cut -f 2- -d '.' | rev)_coverage.bedgraph
+##bamCoverage -p max/2 -b $sortedbamfile -o $bedgraphfile -of bedgraph
 
-echo "Converting bedgraph to UCSC format"
-bedgraphfilecorrect=$(echo $bedgraphfile | rev | cut -f 2- -d '.' | rev)_actual_positions.bed
-bedgraphfileOutChr=$(echo $bedgraphfile | rev | cut -f 2- -d '.' | rev)_genomic_with_chr.bed
-python ./Genomic_scripts/AddExonPositions_bedgraph.py $exonAnnotation $bedgraphfile $bedgraphfilecorrect
-python ./Genomic_scripts/GenomicBedgraph.py $genomicAnnotation $bedgraphfilecorrect $bedgraphfileOutChr
-source ./Genomic_scripts/GenomicToUCSC_bedgraph.sh $bedgraphfileOutChr
+#echo "Converting bedgraph to UCSC format"
+#bedgraphfilecorrect=$(echo $bedgraphfile | rev | cut -f 2- -d '.' | rev)_actual_positions.bed
+#bedgraphfileOutChr=$(echo $bedgraphfile | rev | cut -f 2- -d '.' | rev)_genomic_with_chr.bed
+#python ./Genomic_scripts/AddExonPositions_bedgraph.py $exonAnnotation $bedgraphfile $bedgraphfilecorrect
+#python ./Genomic_scripts/GenomicBedgraph.py $genomicAnnotation $bedgraphfilecorrect $bedgraphfileOutChr
+#source ./Genomic_scripts/GenomicToUCSC_bedgraph.sh $bedgraphfileOutChr
 
 #echo "adding relative intersection"
 #coveragebedfile=$(echo $bedfile | rev | cut -f 2- -d '.' | rev)_coverage_counts.bed

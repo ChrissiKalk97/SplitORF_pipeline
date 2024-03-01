@@ -1,12 +1,15 @@
-#This script calls the aligning scripts to align the Ribo-Seq reads to the transcriptome
+#This script calls the aligning scripts to align the Ribo-Seq reads to the transcriptome (all transcripts downloaded from Ensembl)
 # and calculates the overlap with the previously determined unique regions (main pipeline) of RI and NMD
 #The following are the main directories for the pipeline outputs and for the alignment outputs
+
+#define the directories for ourput
+outputBowtie="./Output/BOWTIE_transcriptome"
 nmd="./Output/BOWTIE_transcriptome/NMD_transcriptome"
-nmdmain="./Output/run_18.12.2023-10.14.23_new_NMD_longest_isoforms_with_UCSC"
 ri="./Output/BOWTIE_transcriptome/RI_transcriptome"
+#define directories for input: results SplitORf pipeline
+nmdmain="./Output/run_18.12.2023-10.14.23_new_NMD_longest_isoforms_with_UCSC"
 rimain="./Output/run_18.12.2023-12.09.08_new_RI_longest_isoforms_with_UCSC"
 
-outputBowtie="./Output/BOWTIE_transcriptome"
 #The following are the paths to the riboseq reads for each sample
 #controls
 OHMX20220060_001="/Users/christina/Documents/Riboseq_Siragusa/bam/OHMX20220060_001.fastq"
@@ -18,6 +21,7 @@ OHMX20220060_004="/Users/christina/Documents/Riboseq_Siragusa/bam/OHMX20220060_0
 OHMX20220060_005="/Users/christina/Documents/Riboseq_Siragusa/bam/OHMX20220060_005.fastq"
 OHMX20220060_006="/Users/christina/Documents/Riboseq_Siragusa/bam/OHMX20220060_006.fastq"
 
+#arrays with sample names
 sample_array=("$OHMX20220060_002" "$OHMX20220060_003" "$OHMX20220060_004" "$OHMX20220060_005" "$OHMX20220060_006")
 sample_array_full=("$OHMX20220060_001" "$OHMX20220060_002" "$OHMX20220060_003" "$OHMX20220060_004" "$OHMX20220060_005" "$OHMX20220060_006")
 
@@ -25,23 +29,23 @@ sample_array_full=("$OHMX20220060_001" "$OHMX20220060_002" "$OHMX20220060_003" "
 exec > >(tee -i $outputBowtie/AlignmentLogfile.txt)
 exec 2>&1
 
-#The following block calls the Bowtie_Align script, which creates a BOWTIE index for thetranscriptome and aligns
+#The following block calls the Bowtie_Align_transcriptomic script, which creates a BOWTIE index for the transcriptome and aligns
 #Ribo-seq data against it before checking the overlap with the determined unique regions. 
-#For further analysis a file with random regions from the 3' and 5' UTR
+#For further analysis a file with random regions from the 3' and 5' UTR with the same length distribution as the unique regions
 #is also created and used to determine background overlap
 
 ###everything in between should not be quoted, just to be faster#############################################
 echo "Starting alignment against transcripts"
-source ./Bowtie_Align_transcriptomic.sh -i ./Input2023/cDNA_fasta_Ensembl_transcripts.fa 10 $outputBowtie/Transcriptomic_Bowtie_index $OHMX20220060_001 $nmd/001_NMD\
+source ./Bowtie_Align_transcriptomic.sh 10 $outputBowtie/Transcriptomic_Bowtie_index $OHMX20220060_001 $nmd/001_NMD\
  $nmdmain/Unique_DNA_Regions_merged_no_orf.bed ./Input2023/ExonPositions_correct.bed\
- ./Input2023/Genomic_positions.bed ./Input2023/UTRs_merged.fa
+ ./Input2023/Genomic_positions.bed ./Input2023/UTRs_merged.fa #-i ./Input2023/cDNA_fasta_Ensembl_transcripts.fa #this is verion 111
 
 echo "=====...............	8%"
 
 counter=2
 for file in "${sample_array[@]}"
 do
-source ./Bowtie_Align_transcriptomic.sh 10 $nmd/Transcriptomic_Bowtie_index $file $nmd/00${counter}_NMD\
+source ./Bowtie_Align_transcriptomic.sh 10 $outputBowtie/Transcriptomic_Bowtie_index $file $nmd/00${counter}_NMD\
  $nmdmain/Unique_DNA_Regions_merged_no_orf.bed ./Input2023/ExonPositions_correct.bed\
  ./Input2023/Genomic_positions.bed ./Input2023/UTRs_merged.fa
 counter=$((counter+1))
@@ -52,7 +56,7 @@ echo "==========..........	50%"
 counter=1
 for file in "${sample_array_full[@]}"
 do
-source ./Bowtie_Align_transcriptomic.sh 10 $ri/Transcriptomic_Bowtie_index $file\
+source ./Bowtie_Align_transcriptomic.sh 10 $outputBowtie/Transcriptomic_Bowtie_index $file\
  $ri/00${counter}_RI $rimain/Unique_DNA_Regions_merged_no_orf.bed ./Input2023/ExonPositions_correct.bed\
   ./Input2023/Genomic_positions.bed ./Input2023/UTRs_merged.fa
 counter=$((counter+1))

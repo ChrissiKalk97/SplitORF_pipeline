@@ -7,129 +7,42 @@ params:
 ---
 The following document is a report on the alignment of multiple Ribo-Seq datasets against the transcriptome. This alignment was intersected with the unique regions of the SplitORFs of NMD and RI transcripts, as calculated in the SplitORFs pipeline. Random regions of the 3' and 5' UTR with the same length distribution as the unique regions were created and intersected with the alignment as well. These serve as the null distribution, or background noise, as these regions should not be actively translated. From the null distribution a threshold is calculated as the upper limit of the 95% CI to classify whether the unique regions are found more often than expected by random chance.
 
-```{r, libraries}
+```{r, echo=FALSE, libraries}
 library('knitr')
 library("dplyr")
 library("UpSetR")
+source("helper_functions_Riboseq_report.R")
 ```
 
 # Calculate the null distribution for NMD unique SplitORF regions
-
-```{r, echo=FALSE,results = 'asis'}
+```{r}
 setwd("/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/BOWTIE_transcriptome")
-#setwd(params[[1]][[1]])
-directories<-list.dirs(path = ".", full.names = TRUE, recursive = TRUE)
-
-randomnmdfiles=list()
-for(i in directories){
-  if(!(identical(list.files(i,pattern="*NMD_random_intersect_counts_relative_sorted.bed"), character(0)))){
-    randomnmdfiles=c(randomnmdfiles,paste0(i,"/",list.files(i,pattern="*NMD_random_intersect_counts_relative_sorted.bed")))
-  }
-}
-randomnmddataframes <- lapply(randomnmdfiles, read.csv, header = FALSE, sep="\t")
-backgroundnmd=list()
-for(randomframe in randomnmddataframes){
-  colnames(randomframe)=c("ID","start","stop","read_count", "relative_count")
-  CI_upper_lim=t.test(randomframe$relative_count)[[4]][[2]]
-  #for the whole relative counts of dataframe
-  #and take upper tail of the 95% CI: If above that threshold: significantly different from the background...
-  #not so sure whether this is stat valid...
-  backgroundnmd = c(backgroundnmd,CI_upper_lim)
-}
-randomSetnames=list()
-for(i in directories){
-  if(!(identical(list.files(i,pattern="*NMD_random_intersect_counts_relative_sorted.bed"), character(0)))){
-    randomSetnames=c(randomSetnames,list.files(i,pattern="*NMD_random_intersect_counts_relative_sorted.bed"))
-  }
-}
-randomnames=stringr::str_replace(randomSetnames, pattern = "_random_intersect_counts_relative_sorted.bed", replacement = "")
-printbackground=data.frame(x=backgroundnmd)
-printbackground=as.data.frame(t(printbackground))
-rownames(printbackground)=randomnames
-colnames(printbackground)="Threshold"
-print(kable(printbackground, caption="Thresholds for each dataset"))
+backgroundnmd <- calculate_background_threshold("NMD")
+print_thresholds("NMD", backgroundnmd)
 threshold=backgroundnmd
 ```
 
-```{r, echo=FALSE,results='asis'}
-#setwd(params[[1]][[1]])
+
+```{r}
 setwd("/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/BOWTIE_transcriptome/NMD_transcriptome")
-
-directories=list.dirs(path = ".", full.names = TRUE, recursive = TRUE)
-nmdfiles=list()
-setnames=list()
-for(i in directories){
-  if(!(identical(list.files(i,pattern="*NMD_intersect_counts_relative_sorted.bed"), character(0)))){
-    nmdfiles=c(nmdfiles,paste0(i,"/",list.files(i,pattern="*NMD_intersect_counts_relative_sorted.bed")))
-    setnames=c(setnames,list.files(i,pattern="*NMD_intersect_counts_relative_sorted.bed"))
-  }
-}
-nmddataframes <- lapply(unlist(nmdfiles), read.csv, header = FALSE, sep="\t")
-
-nmdlist=list()
-for(a in nmddataframes){
-  #a$V1=paste0(a$V1,":",a$V4)
-  #a$V4=NULL
-  nmdlist=c(nmdlist,list(a))
-}
-nmddataframes=nmdlist
-names(nmddataframes) <- stringr::str_replace(setnames, pattern = "_intersect_counts_relative_sorted.bed", replacement = "")
-relevantregionscount=list()
-relevantregions=list()
-i=1
-for(frame in nmddataframes){
-  colnames(frame)=c("ID","start","stop","read_count", "relative_count")
-  temp=0
-  c=1
-  for(count in frame$relative_count){
-    if(count>=threshold[[i]]){
-      if(frame$read_count[[c]] > 1){
-        temp = temp + 1
-      }
-    }
-    c = c + 1
-  }
-  i = i + 1
-  relevantregionscount = c(relevantregionscount,temp)
-}
-printframe=data.frame(x=relevantregionscount)
-printframe=as.data.frame(t(printframe))
-rownames(printframe)=names(nmddataframes)
-colnames(printframe)=paste0("Number of unique regions with relative count >= threshold")
-print(kable(printframe, caption="Regions above the threshold"))
-print(printframe)
+list_nmddataframes <- get_intersect_files("NMD")
+counts_above_t_relative_length<- count_unique_regions_above_threhsold(list_nmddataframes, threshold)
+print_unique_region_above_t(counts_above_t_relative_length, list_nmddataframes)
 ```
-The following table shows the top five unique regions with a relative count above the threshold (if available).
 
-```{r, echo=FALSE,message=FALSE,results='asis'}
-library("dplyr")
-library("UpSetR")
-library("knitr")
-upsetlist=list()
-j=1
-for(f in nmddataframes){
-  bed=f
-  bed = filter(bed, V5 > threshold)
-  list<- rep(NA, length(bed[,1]))
-  for(i in 1:length(bed[,1])){
-    list[i]=paste0(bed[i,1],":",bed[i,2],":",bed[i,3])
-  }
-  #rownames(bed)=list
-  upsetlist=c(upsetlist,list(list))#(row.names(bed))
-  colnames(bed)=c("ID","start","stop","read_count", "relative_count")
-  #print(names(nmddataframes)[j])
-  #print(bed[1:5,], row.names = FALSE)
-  print(kable(bed[1:5,], caption=names(nmddataframes)[j], row.names = FALSE))
-  j = j + 1
-}
-names(upsetlist)=names(nmddataframes)
+
+
+The following table shows the top five unique regions with a relative count above the threshold (if available).
+```{r}
+upsetlist <- get_top_5_unique_regions(list_nmddataframes, threshold)
 ```
 
 The following plot shows how many unique regions are expressed in which dataset and how those overlap with the other data sets.
 
 ```{r, echo=FALSE,message=FALSE}
+names(upsetlist)=names(list_nmddataframes)
 upset(fromList(upsetlist), order.by = "freq", nsets = 12, point.size = 2.25, line.size = 1.5, set_size.show = TRUE,
-      set_size.scale_max = 5000, 
+      set_size.scale_max = 1500, 
       mainbar.y.label = "Unique region Intersections", sets.x.label = "Matching unique regions per dataset",
       text.scale = c(1, 1, 0.9, 1, 1, 1))# c(1.5, 1.25, 0.9, 1.25, 1.25, 1.5)
 
@@ -137,115 +50,35 @@ upset(fromList(upsetlist), order.by = "freq", nsets = 12, point.size = 2.25, lin
 
 
 ## Alignment against RI transcripts
-
-```{r, echo=FALSE,results = 'asis'}
-#setwd(params[[1]][[2]])
-setwd("/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/BOWTIE")
-#setwd("E:/Justin_Backup_29.04.2020/Justin/Uni-Frankfurt/FP+Masterarbeit/PipeTest/Pipeline/Output/run_11.02.2021-15.10.13_new_RI/BOWTIE")
-ridirectories=list.dirs(path = ".", full.names = TRUE, recursive = TRUE)
-
-randomrifiles=list()
-for(i in ridirectories){
-  if(!(identical(list.files(i,pattern="*RI_random_intersect_counts_relative_sorted.bed"), character(0)))){
-    randomrifiles=c(randomrifiles,paste0(i,"/",list.files(i,pattern="*RI_random_intersect_counts_relative_sorted.bed")))
-  }
-}
-randomridataframes <- lapply(randomrifiles, read.csv,header = FALSE,sep="\t")
-backgroundri=list()
-for(randomriframe in randomridataframes){
-  colnames(randomriframe)=c("ID","start","stop","read_count", "relative_count")
-  temp2=0
-  for(count2 in randomriframe$relative_count){
-      temp2 = temp2 + count2
-  }
-  temp2=temp2/length(randomriframe$relative_count)
-  backgroundri = c(backgroundri,temp2)
-}
-thresholdri=0
-for(k in backgroundri){
-  thresholdri = thresholdri + k
-}
-thresholdri=round(thresholdri/length(backgroundri), digits = 3)
-if(thresholdri < 0.01){
-  thresholdri = 0.01
-}
-cat(paste0("The threshold for relevant regions, determined by random region coverage is: ", thresholdri))
+```{r}
+setwd("/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/BOWTIE_transcriptome")
+backgroundri <- calculate_background_threshold("RI")
+print_thresholds("RI", backgroundri)
+thresholdri=backgroundri
 ```
 
-```{r, echo=FALSE,results='asis'}
-#setwd(params[[1]][[2]])
-setwd("/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/BOWTIE")
-#setwd("E:/Justin_Backup_29.04.2020/Justin/Uni-Frankfurt/FP+Masterarbeit/PipeTest/Pipeline/Output/run_11.02.2021-15.10.13_new_RI/BOWTIE")
-ridirectories=list.dirs(path = ".", full.names = TRUE, recursive = TRUE)
-rifiles=list()
-risetnames=list()
-for(i in ridirectories){
-  if(!(identical(list.files(i,pattern="*RI_intersect_counts_relative_sorted.bed"), character(0)))){
-    rifiles=c(rifiles,paste0(i,"/",list.files(i,pattern="*RI_intersect_counts_relative_sorted.bed")))
-    risetnames=c(risetnames,list.files(i,pattern="*RI_intersect_counts_relative_sorted.bed"))
-  }
-}
-ridataframes <- lapply(rifiles, read.csv,header = FALSE,sep="\t")
-#rilist=list()
-#for(a in ridataframes){
-#  a$V1=paste0(a$V1,":",a$V4)
-#  a$V4=NULL
-#  rilist=c(rilist,list(a))
-#}
-#ridataframes=rilist
-names(ridataframes) <- stringr::str_replace(risetnames, pattern = "_intersect_counts_relative_sorted.bed", replacement = "")
-rirelevantregionscount=list()
-rirelevantregions=list()
-for(riframe in ridataframes){
-  colnames(riframe)=c("ID","start","stop","read_count", "relative_count")
-  temp2=0
-  i=0
-  for(count2 in riframe$relative_count){
-    i = i + 1
-    if(count2>=thresholdri){
-      temp2 = temp2 + 1
-    }
-  }
-  rirelevantregionscount = c(rirelevantregionscount,temp2)
-}
-riprintframe=data.frame(x=rirelevantregionscount)
-riprintframe=as.data.frame(t(riprintframe))
-rownames(riprintframe)=names(ridataframes)
-colnames(riprintframe)=paste0("Number of unique regions with relative count >= ", thresholdri)
-print(kable(riprintframe, caption="Regions above the threshold"))
-#print(riprintframe)
-
+```{r}
+setwd("/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/BOWTIE_transcriptome/RI_transcriptome")
+list_ridataframes <- get_intersect_files("RI")
+counts_above_t_relative_length<- count_unique_regions_above_threhsold(list_ridataframes, thresholdri)
+print_unique_region_above_t(counts_above_t_relative_length, list_ridataframes)
 ```
+
+
 The following table shows the top five unique regions with a relative count above the threshold (if available).
-
-```{r, echo=FALSE,message=FALSE,results='asis'}
-library("dplyr")
-library("UpSetR")
-riupsetlist=list()
-j=1
-for(f in ridataframes){
-  bed=f
-  bed = filter(bed, V5 > thresholdri)
-  list<- rep(NA, length(bed[,1]))
-  for(i in 1:length(bed[,1])){
-    list[i]=paste0(bed[i,1],":",bed[i,2],":",bed[i,3])
-  }
-  #rownames(bed)=list
-  riupsetlist=c(riupsetlist,list(list))#(row.names(bed))
-  colnames(bed)=c("ID","start","stop","read_count", "relative_count")
-  #print(names(ridataframes)[j])
-  #print(bed[1:5,], row.names = FALSE)
-  print(kable(bed[1:5,], caption=names(ridataframes)[j], row.names = FALSE))
-  j = j + 1
-}
-names(riupsetlist)=names(ridataframes)
+```{r}
+riupsetlist <- get_top_5_unique_regions(list_ridataframes, thresholdri)
 ```
+
+
+
 
 The following plot shows how many unique regions are expressed in which dataset and how those overlap with the other data sets.
 
 ```{r, echo=FALSE,message=FALSE}
+names(riupsetlist)=names(list_ridataframes)
 upset(fromList(riupsetlist), order.by = "freq", nsets = 12, point.size = 2.25, line.size = 1.5, set_size.show = TRUE,
-      set_size.scale_max = 5000,
+      set_size.scale_max = 2500,
       mainbar.y.label = "Unique region Intersections", sets.x.label = "Matching unique regions per dataset",
       text.scale = c(1, 1, 0.9, 1, 1, 1)) #c(1.5, 1.25, 0.9, 1.25, 1.25, 1.5)
 
