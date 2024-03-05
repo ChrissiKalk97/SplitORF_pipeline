@@ -82,7 +82,7 @@ count_unique_regions_above_threhsold <- function(dataframes, threshold){
   relevantregions=list()
   i=1
   for(frame in dataframes){
-    colnames(frame)=c("ID","start","stop","read_count", "relative_count")
+    colnames(frame)=c("ID","start","stop","ORF","read_count",  "relative_count")
     temp=0
     c=1
     for(count in frame$relative_count){
@@ -115,13 +115,13 @@ get_top_5_unique_regions <- function(dataframes_list, threshold){
   j=1
   for(f in dataframes_list){
     bed=f
-    bed = filter(bed, V5 > threshold[[j]])
+    bed = filter(bed, V6 > threshold[[j]])
     list<- rep(NA, length(bed[,1]))
     for(i in 1:length(bed[,1])){
       list[i]=paste0(bed[i,1],":",bed[i,2],":",bed[i,3])
     }
     upsetlist=c(upsetlist,list(list))
-    colnames(bed)=c("ID","start","stop","read_count", "relative_count")
+    colnames(bed)=c("ID","start","stop","ORF","read_count",  "relative_count")
     print(kable(bed[1:5,], caption=names(dataframes_list)[j], row.names = FALSE))
     j = j + 1
   }

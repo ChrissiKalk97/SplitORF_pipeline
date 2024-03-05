@@ -77,9 +77,9 @@ echo "intersecting with unique regions"
 bedtools intersect -c -F 0.33 -a $unique_regions -b $bedfile | sort -nr -k 4 > $sortedBedfile
 intersectbedfilerelative=$(echo $intersectbedfile | rev | cut -f 2- -d '.' | rev)_relative.bed
 intersectbedfilerelativesorted=$(echo $intersectbedfilerelative | rev | cut -f 2- -d '.' | rev)_sorted.bed
-cat $sortedBedfile | awk -v OFS='\t' '{print $1,$2,$3,$4,$4/($3-$2)}' | sort -nr -k 5 > $intersectbedfilerelativesorted 
+cat $sortedBedfile | awk -v OFS='\t' '{print $1,$2,$3,$4,$5, $5/($3-$2)}' | sort -nr -k 6 > $intersectbedfilerelativesorted 
 #changed $5/($3-$2) to $4/($3-$2) here to see whether I get more reasonable output....
-#also changed sort -n -r -k 6 to 5 and OFS='\t' '{print $1,$2,$3,$4,$4/($3-$2)}' removed $5 from this list
+#when the for comparison file of the pipeline is used then this needs to be changed! The ORF nr etc has its own column
 
 echo "sorting bamfile and indexing"
 sortedbamfile=$(echo $bamfile | rev | cut -f 2- -d '.' | rev)_sorted.bam
@@ -112,6 +112,6 @@ randomintersectfile=$(echo $out | rev | cut -f 2- -d '.' | rev)_random_intersect
 bedtools intersect -c -F 0.33 -a $randomfile -b $bedfile > $randomintersectfile
 randomintersectfilerelative=$(echo $randomintersectfile | rev | cut -f 2- -d '.' | rev)_relative.bed
 randomintersectfilesorted=$(echo $out | rev | cut -f 2- -d '.' | rev)_random_intersect_counts_relative_sorted.bed
-cat $randomintersectfile | awk -v OFS='\t' '{print $1,$2,$3,$4,$4/($3-$2)}' | sort -n -r -k 5 > $randomintersectfilesorted
+cat $randomintersectfile | awk -v OFS='\t' '{print $1,$2,$3,$4, $4/($3-$2)}' | sort -n -r -k 5 > $randomintersectfilesorted
 
 

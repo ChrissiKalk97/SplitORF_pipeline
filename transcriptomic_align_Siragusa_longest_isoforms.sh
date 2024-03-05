@@ -3,12 +3,12 @@
 #The following are the main directories for the pipeline outputs and for the alignment outputs
 
 #define the directories for ourput
-outputBowtie="./Output/BOWTIE_transcriptome_all_isoforms"
-nmd="./Output/BOWTIE_transcriptome_all_isoforms/NMD_transcriptome"
-ri="./Output/BOWTIE_transcriptome_all_isoforms/RI_transcriptome"
+outputBowtie="./Output/BOWTIE_transcriptome"
+nmd="./Output/BOWTIE_transcriptome/NMD_transcriptome"
+ri="./Output/BOWTIE_transcriptome/RI_transcriptome"
 #define directories for input: results SplitORf pipeline
-nmdmain="./Output/run_06.12.2023-17.08.35_new_NMD_all_isoforms_DNA_and_protein"
-rimain="./Output/run_01.03.2024-10.38.08_new_RI_all_isoforms_DNA_and_protein"
+nmdmain="./Output/run_18.12.2023-10.14.23_new_NMD_longest_isoforms_with_UCSC"
+rimain="./Output/run_18.12.2023-12.09.08_new_RI_longest_isoforms_with_UCSC"
 
 #The following are the paths to the riboseq reads for each sample
 #controls
@@ -66,6 +66,6 @@ echo "====================	100%"
 #This block corrects the variables for the rmd input and calls two RMD scripts, who give insight into the alignment of the Ribo-seq data
 nmd=$nmd/
 ri=$ri/
-outputBowtie="./Output/BOWTIE_transcriptome_all_isoforms"
-R -e "rmarkdown::render('RiboSeqReportTranscriptomic.Rmd',output_file='./Output/BOWTIE_transcriptome_all_isoforms/RiboSeq_Report.html',params=list(args = c('$outputBowtie', '$nmd','$ri')))"
+outputBowtie="./Output/BOWTIE_transcriptome"
+R -e "rmarkdown::render('RiboSeqReportTranscriptomic.Rmd',output_file='./Output/BOWTIE_transcriptome/RiboSeq_Report.html',params=list(args = c('$outputBowtie', '$nmd','$ri')))"
 #R -e "rmarkdown::render('RiboSeqReportGenomic.Rmd',output_file='./Output/RiboSeq_Report_genomic.html',params=list(args = c('$outputBowtie','$outputBowtie')))"
