@@ -19,12 +19,13 @@ def main():
     ORFs_end = weird_cases_end['ORF_filter'].tolist()
     ORFs_to_filter = ORFs_beginning + ORFs_end
     print('ORFs_to_filter', len(ORFs_to_filter))
-    print(ORFs_to_filter[0:10])
+
     file_name = sys.argv[1].split('/')[-1]
     file_name = file_name[:-4]
+    type = sys.argv[4]
     unique_bed_filtered = unique_regions.filter(lambda unique_region:\
         unique_region.name.split(':')[0]+':'+str(unique_region.start)+':'+str(unique_region.end) \
-            not in set(ORFs_to_filter)).saveas(f'filtered_unique_regions/{file_name}_filtered.bed')
+            not in set(ORFs_to_filter)).saveas(f'filtered_unique_regions/{file_name}_filtered_{type}.bed')
     
 
     
