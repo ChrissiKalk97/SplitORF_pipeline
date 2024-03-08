@@ -18,35 +18,35 @@ colon=":"
 
 def checkAlignments(Alignments,gene, target) :
     if Alignments :
-                    for match in Alignments:
-                        entries = Alignments[match]
-                        if len(entries) >= minOrfNum: #found more than one ORF 
-                            #compute max and min sequence identity values
-                            MinSeqIdent=float(100)
-                            MaxSeqIdent=float(0)
+        for match in Alignments:
+            entries = Alignments[match]
+            if len(entries) >= minOrfNum: #found more than one ORF 
+                #compute max and min sequence identity values
+                MinSeqIdent=float(100)
+                MaxSeqIdent=float(0)
 
-                            orfIDs =[]
-                            orfPos =[]
-                            orfSeqIdents = []
-                            orfLengths = []
-                            pAlignPos = []
-                            totalAlignLength=0
-                            for i in range(0,len(entries)) :    
-                                #print("**",entries)
-                                orfIDs.append(entries[i].split(":")[0])
-                                orfPos.append("-".join([entries[i].split(":")[1],entries[i].split(":")[2]]))
-                                currentSeqIdent=float(entries[i].split(":")[3])
-                                if(currentSeqIdent < float(MinSeqIdent)) :
-                                    MinSeqIdent = currentSeqIdent
-                                if(currentSeqIdent > MaxSeqIdent) :
-                                    MaxSeqIdent = float(currentSeqIdent)
-                                orfSeqIdents.append(str(currentSeqIdent))
-                                orfLengths.append(str(int(entries[i].split(":")[2])-int(entries[i].split(":")[1])+1))
-                                pAlignPos.append(entries[i].split(":")[5])
-                                totalAlignLength = totalAlignLength + int(entries[i].split(":")[4])
+                orfIDs =[]
+                orfPos =[]
+                orfSeqIdents = []
+                orfLengths = []
+                pAlignPos = []
+                totalAlignLength=0
+                for i in range(0,len(entries)) :    
+                    #print("**",entries)
+                    orfIDs.append(entries[i].split(":")[0])
+                    orfPos.append("-".join([entries[i].split(":")[1],entries[i].split(":")[2]]))
+                    currentSeqIdent=float(entries[i].split(":")[3])
+                    if(currentSeqIdent < float(MinSeqIdent)) :
+                        MinSeqIdent = currentSeqIdent
+                    if(currentSeqIdent > MaxSeqIdent) :
+                        MaxSeqIdent = float(currentSeqIdent)
+                    orfSeqIdents.append(str(currentSeqIdent))
+                    orfLengths.append(str(int(entries[i].split(":")[2])-int(entries[i].split(":")[1])+1))
+                    pAlignPos.append(entries[i].split(":")[5])
+                    totalAlignLength = totalAlignLength + int(entries[i].split(":")[4])
 
 
-                            print "\t".join([gene,target,match,str(len(entries)),",".join(orfIDs),",".join(orfPos),",".join(orfLengths),",".join(orfSeqIdents),str(MinSeqIdent),str(MaxSeqIdent),",".join(pAlignPos),str(totalAlignLength)])
+                print "\t".join([gene,target,match,str(len(entries)),",".join(orfIDs),",".join(orfPos),",".join(orfLengths),",".join(orfSeqIdents),str(MinSeqIdent),str(MaxSeqIdent),",".join(pAlignPos),str(totalAlignLength)])
 
 #read in fasta file
 if len(sys.argv) < 2:
@@ -55,7 +55,7 @@ else :
 
         file=open(sys.argv[1],'r')
 
-        lastElem="dummy|dummy" #variable that remembers the last transcript in use (all alignments are sorted by traget sequence)
+        lastElem="dummy|dummy" #variable that remembers the last transcript in use (all alignments are sorted by target sequence)
         Alignments = {}  #hash map that stores all valid alignments for one target sequence
         #print header for result file
         print "\t".join(["geneID", "targetTransID" ,"OrfTransID", "NumOrfs","OrfIDs","OrfPos","OrfLengths","OrfSeqIdents","MinSeqIdent","MaxSeqIdent","protAlignPos","protCoverage"])
