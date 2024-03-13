@@ -57,16 +57,16 @@ fi
 numberOfThreads=$1
 bowtieBaseName=$2
 Riboreads=$3
-out=$4.sam
+bamfile=$4.bam
 unique_regions=$5
 exonAnnotation=$6
 genomicAnnotation=$7
 referencetranscripts=$8
 
 #align Riboreads against the transcriptome
-bamfile=$(echo $out | rev | cut -f 2- -d '.' | rev).bam
+#bamfile=$(echo $out | rev | cut -f 2- -d '.' | rev).bam
 bowtie2 --threads $numberOfThreads -x $bowtieBaseName -U $Riboreads | samtools view -@ $numberOfThreads -bS > $bamfile
-bedfile=$(echo $out | rev | cut -f 2- -d '.' | rev).bed
+bedfile=$(echo $bamfile | rev | cut -f 2- -d '.' | rev).bed
 
 echo "converting bam to bed"
 bedtools bamtobed -i $bamfile > $bedfile
@@ -106,12 +106,12 @@ samtools index -@ 10 $sortedbamfile
 #sort -k 7 -r -n $coveragebedfile > $coveragebedfilesorted
 
 echo "Calculating random regions from 3 and 5 prime UTRs"
-randomfile=$(echo $out | rev | cut -f 2- -d '.' | rev)_random_background_regions.bed
+randomfile=$(echo $bamfile | rev | cut -f 2- -d '.' | rev)_random_background_regions.bed
 python ./Uniqueness_scripts/BackgroundRegions.py $unique_regions $referencetranscripts $randomfile
-randomintersectfile=$(echo $out | rev | cut -f 2- -d '.' | rev)_random_intersect_counts.bed
+randomintersectfile=$(echo $bamfile | rev | cut -f 2- -d '.' | rev)_random_intersect_counts.bed
 bedtools intersect -c -F 0.33 -a $randomfile -b $bedfile > $randomintersectfile
 randomintersectfilerelative=$(echo $randomintersectfile | rev | cut -f 2- -d '.' | rev)_relative.bed
-randomintersectfilesorted=$(echo $out | rev | cut -f 2- -d '.' | rev)_random_intersect_counts_relative_sorted.bed
+randomintersectfilesorted=$(echo $bamfile | rev | cut -f 2- -d '.' | rev)_random_intersect_counts_relative_sorted.bed
 cat $randomintersectfile | awk -v OFS='\t' '{print $1,$2,$3,$4, $4/($3-$2)}' | sort -n -r -k 5 > $randomintersectfilesorted
 
 

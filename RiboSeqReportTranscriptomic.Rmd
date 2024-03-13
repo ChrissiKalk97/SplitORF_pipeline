@@ -18,7 +18,7 @@ source("helper_functions_Riboseq_report.R")
 
 # Calculate the null distribution for NMD unique SplitORF regions
 ```{r}
-#setwd("/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/BOWTIE_transcriptome_all_isoforms")
+#setwd("/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/BOWTIE_transcriptome")
 setwd(params[[1]][[1]])
 backgroundnmd <- calculate_background_threshold("NMD")
 print_thresholds("NMD", backgroundnmd)
@@ -27,7 +27,7 @@ threshold=backgroundnmd
 
 
 ```{r}
-#setwd("/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/BOWTIE_transcriptome_all_isoforms/NMD_transcriptome")
+#setwd("/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/BOWTIE_transcriptome/NMD_transcriptome")
 setwd(params[[1]][[2]])
 list_nmddataframes <- get_intersect_files("NMD")
 counts_above_t_relative_length<- count_unique_regions_above_threhsold(list_nmddataframes, threshold)
@@ -56,14 +56,14 @@ upset(fromList(upsetlist), order.by = "freq", nsets = 12, point.size = 2.25, lin
 ## Alignment against RI transcripts
 ```{r}
 setwd(params[[1]][[1]])
-#setwd("/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/BOWTIE_transcriptome_all_isoforms")
+#setwd("/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/BOWTIE_transcriptome")
 backgroundri <- calculate_background_threshold("RI")
 print_thresholds("RI", backgroundri)
 thresholdri=backgroundri
 ```
 
 ```{r}
-#setwd("/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/BOWTIE_transcriptome_all_isoforms/RI_transcriptome")
+#setwd("/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/BOWTIE_transcriptome/RI_transcriptome")
 setwd(params[[1]][[3]])
 list_ridataframes <- get_intersect_files("RI")
 counts_above_t_relative_length<- count_unique_regions_above_threhsold(list_ridataframes, thresholdri)
