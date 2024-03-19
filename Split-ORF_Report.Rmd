@@ -5,20 +5,36 @@ output: html_document
 params:
     args: myarg
 ---
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
 
+
+```{r imports,echo=FALSE}
+library(seqinr)
+library(ggplot2)
+library(geomtextpath)
+```
 This report shows a number of summary statistics of the a result file obtained from the [SplitOrfs](https://github.com/SchulzLab/SplitOrfs) software.
 
 
 ## Overview of the valid alignment results:
 
 
-```{r basic stats,echo=FALSE}
-library(seqinr)
+```{r summary stats,echo=FALSE}
 datapath=getwd()
-path = "FinalAnalysis"
 file1=paste0(datapath,params[[1]][[1]])#valid protein orf pairs
 file2=paste0(datapath,params[[1]][[2]])#unique protein orf pairs
 file3=paste0(datapath,params[[1]][[3]])#transcripts
+
+#file1=paste0(datapath,"/Output/run_18.12.2023-10.14.23_new_NMD_longest_isoforms_with_UCSC/ValidProteinORFPairs_sortCol3.txt")
+#file1=paste0(datapath,"/Output/run_18.12.2023-12.09.08_new_RI_longest_isoforms_with_UCSC/ValidProteinORFPairs_sortCol3.txt")
+  #paste0(datapath,params[[1]][[1]])#valid protein orf pairs
+#file2=paste0(datapath,"/Output/run_18.12.2023-10.14.23_new_NMD_longest_isoforms_with_UCSC/UniqueProteinORFPairs_annotated.txt")
+#file2=paste0(datapath,"/Output/run_18.12.2023-12.09.08_new_RI_longest_isoforms_with_UCSC/UniqueProteinORFPairs_annotated.txt")
+  #paste0(datapath,params[[1]][[2]])#unique protein orf pairs
+#file3=paste0(datapath,"/Input2023/NMD_transcripts_CDNA.fa")
+  #paste0(datapath,params[[1]][[3]])#transcripts
 
 transcripts = read.fasta(file3)
 
@@ -27,7 +43,6 @@ validIds=read.table(file1,header=T)#,fill=T,stringsAsFactors=F)
 
 tab = read.table(file2,header=T)#,fill=T,stringsAsFactors=F)
 
-tab= subset(tab,tab$OrfTransID %in% validIds$OrfTransID)
 
 NumTrans = length(transcripts)#nrow(validIds)
 validTrans = length(unique(tab$OrfTransID))
@@ -35,7 +50,7 @@ annots=nrow(tab)-sum(is.na(tab$ORF.DomainAnnot))
 uniqGenes = length(unique(tab$geneID))
 #create plotting dataframe
 legends=c("Number of transcripts",
-          "Transcripts with >= 2 ORFs",
+          "Transcripts with >= 2 valid ORFs",
           "Transcripts with >= 1 PFAM domain overlap",
           "Number of unique Genes")
 
@@ -47,13 +62,20 @@ plotData
 ## Histogramm of matching ORFs per transcripts:
 
 ```{r hist1, echo=FALSE}
-hist(tab$NumOrfs,col="blue",breaks=100,main="Matching ORFs per transcript",xlab="Number of ORFs")
+ggplot(tab, aes(x=NumOrfs)) + geom_histogram(binwidth=0.1) +
+  geom_textvline(label = paste("mean number of ORFs", round(mean(tab$NumOrfs), 3)), xintercept = mean(tab$NumOrfs), vjust = 1.3)+
+  labs(title="Matching ORFs per transcript (ORFs matching uniquely)", x="Number of ORFs", y="Frequency")
+#hist(tab$NumOrfs,col="blue",breaks=100,main="Matching ORFs per transcript",xlab="Number of ORFs")
 ```
 
 ## Histogramm of NMD-protein pairs
 
 ```{r hist2, echo=FALSE}
-hist(table(tab$geneID),breaks=100,col="blue",main="Number of transcript - protein pairs per gene",xlab="Transcript-protein pairs per gene")
+require(dplyr)
+table(tab$geneID) %>% as.data.frame %>% ggplot(aes(x = Freq)) + geom_histogram(binwidth=0.5) +
+  geom_textvline(label = paste("mean number of t - p pairs per gene", round(mean(table(tab$geneID)), 3)), xintercept = mean(table(tab$geneID)), vjust = 1.3)+
+  labs(title="Number of SplitORF transcript - protein pairs per gene", x="Transcript-protein pairs per gene", y="Frequency")
+#hist(table(tab$geneID),breaks=100,col="blue",main="Number of transcript - protein pairs per gene",xlab="Transcript-protein pairs per gene")
 ```
 
 ## Top 20 genes, that have the most transcripts with >=2 ORFs
@@ -64,37 +86,77 @@ hist(table(tab$geneID),breaks=100,col="blue",main="Number of transcript - protei
     
 ```
 
-## Histogramm of min and max sequence identity
 
-A histogramm of min and max sequence identity values from the ORF-protein alignments, i.e., each such value is derived from one ORF-protein alignment. For all ORFs of a protein-ORF match the min respectively max seq. identity is recorded. The minimal sequence identity allowed for an alignment by default is 95%.
+## Histogram of SplitORF lengths
 
-```{r hist3, echo=FALSE}
-par(mfrow=c(2,1))
-hist(tab$MinSeqIdent,col="blue",main="Min seq identities",xlab="Sequence identity value")
-hist(tab$MaxSeqIdent,col="blue",main="Max seq identities",xlab="Sequence identity value")
-
-```
-
-## Histogram in the intervall [0,2000]
-
-To analyze the length of the predicted orfs in DNA basepairs we plot a histogram in the intervall [0,2000]. Note that the minimal length of an ORF is 120 base pairs, which explains the sudden break close to 0. 
+Plotting the length of SplitORFs in bp and AA. Note that the minimal length of an ORF is 120 base pairs. 
 
 ```{r orfLengths, echo=FALSE}
-par(mfrow=c(2,1))
-hist(as.numeric(unlist(strsplit(as.character(tab$OrfLengths),",",fixed=T))),xlim=c(0,2000), breaks=500,col="blue",xlab="Orf length",main="Nucleotide lengths of all Orfs")
+require(gridExtra)
+plot1 <- qplot(as.numeric(unlist(strsplit(as.character(tab$OrfLengths),",",fixed=T))))+
+  labs(title="Nucleotide lengths of all ORFs", x="ORF length", y="Frequency")
+plot2 <- qplot(sapply(strsplit(as.character(tab$OrfLengths),",",fixed=T),function(x){return(mean(as.numeric(x)))}))+
+  labs(title="Mean #Nuc per ORF per SplitORF trans", x="ORF length", y="Frequency")
+grid.arrange(plot1, plot2, ncol=2)
 
-hist(sapply(strsplit(as.character(tab$OrfLengths),",",fixed=T),function(x){return(mean(as.numeric(x)))}),xlim=c(0,800), breaks=300,col="blue",main="Mean orf lengths per gene",xlab="Mean nucleotide orf length")
+
+#par(mfrow=c(2,1))
+#hist(as.numeric(unlist(strsplit(as.character(tab$OrfLengths),",",fixed=T))),xlim=c(0,2000), breaks=500,col="blue",xlab="Orf length",main="Nucleotide lengths of all Orfs")
+
+#hist(sapply(strsplit(as.character(tab$OrfLengths),",",fixed=T),function(x){return(mean(as.numeric(x)))}),xlim=c(0,800), breaks=300,col="blue",main="Mean orf lengths per gene",xlab="Mean #nucleotide orf length")
 
 ```
+
+```{r orfLengthsZoom, echo=FALSE}
+require(gridExtra)
+plot1 <- qplot(as.numeric(unlist(strsplit(as.character(tab$OrfLengths),",",fixed=T))), xlim = c(0,2000))+
+  labs(title="Zoom - Nuc lengths of all SplitORFs", x="ORF length", y="Frequency")
+plot2 <- qplot(sapply(strsplit(as.character(tab$OrfLengths),",",fixed=T),function(x){return(mean(as.numeric(x)))}), xlim = c(0,2000))+
+  labs(title="Zoom - Mean #Nuc per ORF per SO trans", x="ORF length", y="Frequency")
+grid.arrange(plot1, plot2, ncol=2)
+```
+```{r, echo=FALSE}
+m <- matrix(c(round(mean(as.numeric(unlist(strsplit(as.character(tab$OrfLengths),",",fixed=T), 5)))), mean(sapply(strsplit(as.character(tab$OrfLengths),",",fixed=T),function(x){return(mean(as.numeric(x)))}))), ncol = 2, nrow = 1)
+mean_ORF_lengths <- data.frame(m)
+rownames(mean_ORF_lengths) = "mean SplitORF length"
+colnames(mean_ORF_lengths) = c("mean overall SplitORF length", "mean SplitORF length per gene")
+print(mean_ORF_lengths)
+```
+
+```{r, echo=FALSE}
+m <- matrix(c(round(mean(as.numeric(unlist(strsplit(as.character(tab$OrfLengths),",",fixed=T), 5)))), mean(sapply(strsplit(as.character(tab$OrfLengths),",",fixed=T),function(x){return(mean(as.numeric(x)))}))), ncol = 2, nrow = 1)
+mean_ORF_lengths <- data.frame(m/3)
+rownames(mean_ORF_lengths) = "mean SplitORF length in AA"
+colnames(mean_ORF_lengths) = c("mean overall SplitORF length in AA", "mean SplitORF length per gene in AA")
+print(mean_ORF_lengths)
+```
+
+```{r orfLengthsAA, echo=FALSE}
+require(gridExtra)
+plot1 <- qplot(as.numeric(unlist(strsplit(as.character(tab$OrfLengths),",",fixed=T)))/3, xlim = c(0,2000))+
+  labs(title="AA lengths of all SplitORFs", x="ORF length", y="Frequency")
+plot2 <- qplot(sapply(strsplit(as.character(tab$OrfLengths),",",fixed=T),function(x){return(mean(as.numeric(x))/3)}), xlim = c(0,2000))+
+  labs(title="Mean #AA per ORF per SplitORF transcript", x="ORF length", y="Frequency")
+grid.arrange(plot1, plot2, ncol=2)
+```
+```{r orfLengthsAAzoom, echo=FALSE}
+require(gridExtra)
+plot1 <- qplot(as.numeric(unlist(strsplit(as.character(tab$OrfLengths),",",fixed=T)))/3, xlim = c(0,1000))+
+  labs(title="Zoom - AA lengths of all SplitORFs", x="ORF length", y="Frequency")
+plot2 <- qplot(sapply(strsplit(as.character(tab$OrfLengths),",",fixed=T),function(x){return(mean(as.numeric(x))/3)}), xlim = c(0,1000))+
+  labs(title="Zoom - Mean #AA per ORF per trans", x="ORF length", y="Frequency")
+grid.arrange(plot1, plot2, ncol=2)
+```
+
+
 
 ## PFAM domain annotations
 
 PFAM domain annotations were obtained for all protein coding genes. Here we show how often more than one ORF overlaps an annotated PFAM domain in the alignment region. For example a value of two means, that two distinct ORFs made from the transcript aligned to regions in the protein that overlapped PFAM annotations.
 
 ```{r orfAnnots, echo=FALSE}
-
-hist(subset(tab,AnnotPercent >0)$NumORFAnnot,breaks=100,col="blue",main="Frequency of ORFs with >= 1 annotation",xlab="Number of ORFs that are overlapping annotation")
-
+    ggplot(tab, aes(x= NumORFAnnot)) + xlim(-1, 4)+ ylim(0, 4500)+
+  geom_histogram() + labs(title="Number of PFAM annotations per SplitORF transcript", x="Number of ORFs overlapping annotation per SO transcript", y="Frequency")
 ```
 
 ## Top 20 genes that have the most transcripts ORFs with annotations per transcript
@@ -124,7 +186,9 @@ Analysis of the type of domains that are part of SplitORFs looking per gene, thi
     #create subset with one transcript per gene, with the highest number of ORFs that overlap an annotation
     subTab=tab[order(tab$NumORFAnnot,decreasing=T),]
     subTab=subTab[!duplicated(subTab$geneID),]
-    hist(table(unlist(subTab$ORF.DomainAnnot)),xlab="Number of domain type occurrences",main="Frequency of Domain type occurrences for all unique genes",col="blue",breaks=40)
+    domain_counts <- subTab %>% group_by(ORF.DomainAnnot) %>% count()
+    ggplot(domain_counts, aes(x = n)) + xlim(0, 6)+
+  geom_histogram() + labs(title="Frequency of Domain type occurrences for all unique genes", x="Number of domain type occurrences", y="Frequency")
 ```
 
 Show the top 50 most frequent domains found in Split Orfs (counting once per gene).
@@ -137,7 +201,9 @@ Show the top 50 most frequent domains found in Split Orfs (counting once per gen
 Analysis of the type of domains that are part of SplitORFs looking at all transcripts, this incorporates also the case that two transcripts may come from the same gene.
 
 ``` {r stats annotations, echo=FALSE}
-    hist(table(unlist(tab$ORF.DomainAnnot)),xlab="Number of domain type occurrences",main="Frequency of Domain type occurrences of all transcripts",col="blue",breaks=40)
+     domain_counts_all <- tab %>% group_by(ORF.DomainAnnot) %>% count()
+    ggplot(domain_counts_all, aes(x = n)) + xlim(0, 6)+
+  geom_histogram() + labs(title="Frequency of Domain type occurrences of all transcripts", x="Number of domain type occurrences", y="Frequency")
 ```
 
 
