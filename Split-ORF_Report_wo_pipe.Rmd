@@ -14,6 +14,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 library(seqinr)
 library(ggplot2)
 library(geomtextpath)
+library(dplyr)
 ```
 This report shows a number of summary statistics of the a result file obtained from the [SplitOrfs](https://github.com/SchulzLab/SplitOrfs) software.
 
@@ -23,11 +24,11 @@ This report shows a number of summary statistics of the a result file obtained f
 
 ```{r summary stats,echo=FALSE}
 datapath=getwd()
-#file1=paste0(datapath,"/Output/run_18.12.2023-10.14.23_new_NMD_longest_isoforms_with_UCSC/ValidProteinORFPairs_sortCol3.txt")
-file1=paste0(datapath,"/Output/run_18.12.2023-12.09.08_new_RI_longest_isoforms_with_UCSC/ValidProteinORFPairs_sortCol3.txt")
+file1=paste0(datapath,"/Output/run_18.03.2024-17.04.47/ValidProteinORFPairs_sortCol3.txt")
+#file1=paste0(datapath,"/Output/run_18.12.2023-12.09.08_new_RI_longest_isoforms_with_UCSC/ValidProteinORFPairs_sortCol3.txt")
   #paste0(datapath,params[[1]][[1]])#valid protein orf pairs
-#file2=paste0(datapath,"/Output/run_18.12.2023-10.14.23_new_NMD_longest_isoforms_with_UCSC/UniqueProteinORFPairs_annotated.txt")
-file2=paste0(datapath,"/Output/run_18.12.2023-12.09.08_new_RI_longest_isoforms_with_UCSC/UniqueProteinORFPairs_annotated.txt")
+file2=paste0(datapath,"/Output/run_18.03.2024-17.04.47/UniqueProteinORFPairs_annotated.txt")
+#file2=paste0(datapath,"/Output/run_18.12.2023-12.09.08_new_RI_longest_isoforms_with_UCSC/UniqueProteinORFPairs_annotated.txt")
   #paste0(datapath,params[[1]][[2]])#unique protein orf pairs
 file3=paste0(datapath,"/Input2023/NMD_transcripts_CDNA.fa")
   #paste0(datapath,params[[1]][[3]])#transcripts
@@ -161,8 +162,10 @@ grid.arrange(plot1, plot2, ncol=2)
 PFAM domain annotations were obtained for all protein coding genes. Here we show how often more than one ORF overlaps an annotated PFAM domain in the alignment region. For example a value of two means, that two distinct ORFs made from the transcript aligned to regions in the protein that overlapped PFAM annotations.
 
 ```{r orfAnnots, echo=FALSE}
-
-hist(subset(tab,AnnotPercent >0)$NumORFAnnot,breaks=100,col="blue",main="Frequency of ORFs with >= 1 annotation",xlab="Number of ORFs that are overlapping annotation")
+ anno_present <- tab %>% subset(AnnotPercent >0) 
+    ggplot(anno_present, aes(x = NumORFAnnot)) + xlim(0, 6)+
+  geom_histogram() + labs(title="Frequency of ORFs with >= 1 annotation", x="Number of ORFs that are overlapping annotation", y="Frequency")
+#hist(subset(tab,AnnotPercent >0)$NumORFAnnot,breaks=100,col="blue",main="Frequency of ORFs with >= 1 annotation",xlab="Number of ORFs that are overlapping annotation")
 
 ```
 
@@ -193,7 +196,10 @@ Analysis of the type of domains that are part of SplitORFs looking per gene, thi
     #create subset with one transcript per gene, with the highest number of ORFs that overlap an annotation
     subTab=tab[order(tab$NumORFAnnot,decreasing=T),]
     subTab=subTab[!duplicated(subTab$geneID),]
-    hist(table(unlist(subTab$ORF.DomainAnnot)),xlab="Number of domain type occurrences",main="Frequency of Domain type occurrences for all unique genes",col="blue",breaks=40)
+    domain_counts <- subTab %>% group_by(ORF.DomainAnnot) %>% count()
+    ggplot(domain_counts, aes(x = n)) + xlim(0, 6)+
+  geom_histogram() + labs(title="Frequency of Domain type occurrences for all unique genes", x="Number of domain type occurrences", y="Frequency")
+   #hist(table(unlist(subTab$ORF.DomainAnnot)),xlab="Number of domain type occurrences",main="Frequency of Domain type occurrences for all unique #genes",col="blue", breaks = 40)
 ```
 
 Show the top 50 most frequent domains found in Split Orfs (counting once per gene).
@@ -206,7 +212,9 @@ Show the top 50 most frequent domains found in Split Orfs (counting once per gen
 Analysis of the type of domains that are part of SplitORFs looking at all transcripts, this incorporates also the case that two transcripts may come from the same gene.
 
 ``` {r stats annotations, echo=FALSE}
-    hist(table(unlist(tab$ORF.DomainAnnot)),xlab="Number of domain type occurrences",main="Frequency of Domain type occurrences of all transcripts",col="blue",breaks=40)
+    domain_counts_all <- tab %>% group_by(ORF.DomainAnnot) %>% count()
+    ggplot(domain_counts_all, aes(x = n)) + xlim(0, 6)+
+  geom_histogram() + labs(title="Frequency of Domain type occurrences of all transcripts", x="Number of domain type occurrences", y="Frequency")
 ```
 
 
