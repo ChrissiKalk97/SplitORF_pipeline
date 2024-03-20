@@ -192,14 +192,17 @@ python ./Uniqueness_scripts/Merge_Bedfile.py ./Output/run_$timestamp/Unique_DNA_
 echo "Extract only the valid regions"
 python ./Uniqueness_scripts/SelectValidOrfSequences.py ./Output/run_$timestamp/UniqueProteinORFPairs.txt ./Output/run_$timestamp/Unique_Protein_Regions_merged.bed ./Output/run_$timestamp/Unique_Protein_Regions_merged_valid.bed
 
+# ----- Filter the protein and DNA unique regions for weird SplitORF positions
+python ./Uniqueness_scripts/filter_unique_regions.py ./Output/run_$timestamp/UniqueProteinMatches.bed ./Output/run_$timestamp/Unique_Protein_Regions_merged_valid.bed protein ./Output/run_$timestamp
+python ./Uniqueness_scripts/filter_unique_regions.py ./Output/run_$timestamp/UniqueProteinMatches.bed ./Output/run_$timestamp/Unique_DNA_Regions_merged.bed DNA ./Output/run_$timestamp
 
 # ----- Use bedtools getfasta to extract the fasta sequences of the unique regions annotated in the produced bedfiles ----- #
 echo "Finishing Steps"
-bedtools getfasta -fi ./Output/run_$timestamp/ValidORF_DNA_Sequences.fa -fo ./Output/run_$timestamp/Unique_DNA_regions.fa -bed ./Output/run_$timestamp/Unique_DNA_Regions_merged.bed
-bedtools getfasta -fi ./Output/run_$timestamp/ORFProteins.fa -fo ./Output/run_$timestamp/Unique_Protein_regions.fa -bed ./Output/run_$timestamp/Unique_Protein_Regions_merged_valid.bed
+bedtools getfasta -fi ./Output/run_$timestamp/ValidORF_DNA_Sequences.fa -fo ./Output/run_$timestamp/Unique_DNA_regions.fa -bed ./Output/run_$timestamp/Unique_DNA_Regions_merged_filtered.bed
+bedtools getfasta -fi ./Output/run_$timestamp/ORFProteins.fa -fo ./Output/run_$timestamp/Unique_Protein_regions.fa -bed ./Output/run_$timestamp/Unique_Protein_Regions_merged_valid_filtered.bed
 
 # ----- Reorganize Unique_DNA_Regions_merged.bed for later intersection with riboseq Alignment ----- #
-python ./Uniqueness_scripts/Bedreorganize.py ./Output/run_$timestamp/Unique_DNA_Regions_merged.bed ./Output/run_$timestamp/Unique_DNA_Regions_for_comparison.bed
+python ./Uniqueness_scripts/Bedreorganize_adapted.py ./Output/run_$timestamp/Unique_DNA_Regions_merged_filtered.bed ./Output/run_$timestamp/Unique_DNA_Regions_for_comparison.bed
 
 # ----- Get the genomic positions for the unique DNA and protein regions ----- #
 echo "Change the Positions of the unique DNA and Protein as well as the ValidORF bed to their positions within the unspliced transcript"
