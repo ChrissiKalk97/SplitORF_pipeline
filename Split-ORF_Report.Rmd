@@ -61,7 +61,7 @@ plotData = data.frame(Entry=legends,Values=values)
 plotData
 ```
 
-## Histogramm of matching ORFs per transcripts:
+## Histogramm of matching ORFs per SplitORF transcript:
 
 ```{r hist1, echo=FALSE}
 ggplot(unique_split_orfs, aes(x=NumOrfs)) + geom_histogram(binwidth=0.1) +
@@ -187,18 +187,18 @@ df_expanded$ORF_start_percent <- df_expanded$ORF_start/df_expanded$transcript_le
 df_expanded$ORF_end_percent <- df_expanded$ORF_end/df_expanded$transcript_lengths
 ```
 
-```{r}
+```{r, echo=FALSE}
 ggplot(df_expanded, aes(x = ORF_start_percent, fill = factor(Cumulative_ORF_Count))) +
   geom_histogram() +
     scale_fill_hue(l=45)+
-  labs(x = "Start positions of ORFs inside of SplitORf transcript in %", y = "Frequency", fill = "Number of ORF inside the SplitORF transcript") +
+  labs(x = "Start positions of ORFs inside of SplitORf transcript in %", y = "Frequency", fill = "ORF position in SplitORF transcript") +
   theme_minimal()
 ```
-```{r}
+```{r, echo=FALSE}
 ggplot(df_expanded, aes(x = ORF_end_percent, fill = factor(Cumulative_ORF_Count))) +
   geom_histogram() +
     scale_fill_hue(l=45)+
-  labs(x = "End positions of ORFs inside of SplitORf transcript in %", y = "Frequency", fill = "Number of ORF inside the SplitORF transcript") +
+  labs(x = "End positions of ORFs inside of SplitORf transcript in %", y = "Frequency", fill = "ORF position in SplitORF transcript") +
   theme_minimal()
 ```
 
@@ -243,7 +243,7 @@ Analysis of the type of domains that are part of SplitORFs looking per gene, thi
     subunique_split_orfs=unique_split_orfs[order(unique_split_orfs$NumORFAnnot,decreasing=T),]
     subunique_split_orfs=subunique_split_orfs[!duplicated(subunique_split_orfs$geneID),]
     domain_counts <- subunique_split_orfs %>% group_by(ORF.DomainAnnot) %>% count()
-    ggplot(domain_counts, aes(x = n)) + xlim(0, 6)+
+    ggplot(domain_counts, aes(x = n)) + xlim(-1, 6)+
   geom_histogram() + labs(title="Frequency of Domain type occurrences for all unique genes", x="Number of domain type occurrences", y="Frequency")
 ```
 
@@ -258,7 +258,7 @@ Analysis of the type of domains that are part of SplitORFs looking at all transc
 
 ``` {r stats annotations, echo=FALSE}
      domain_counts_all <- unique_split_orfs %>% group_by(ORF.DomainAnnot) %>% count()
-    ggplot(domain_counts_all, aes(x = n)) + xlim(0, 6)+
+    ggplot(domain_counts_all, aes(x = n)) + xlim(-1, 6)+
   geom_histogram() + labs(title="Frequency of Domain type occurrences of all transcripts", x="Number of domain type occurrences", y="Frequency")
 ```
 

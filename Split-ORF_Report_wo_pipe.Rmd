@@ -57,7 +57,7 @@ plotData = data.frame(Entry=legends,Values=values)
 plotData
 ```
 
-## Histogramm of matching ORFs per source transcripts:
+## Histogramm of matching ORFs per source transcript:
 
 ```{r hist1, echo=FALSE}
 ggplot(unique_split_orfs, aes(x=NumOrfs)) + geom_histogram(binwidth=0.1) +
@@ -183,18 +183,18 @@ df_expanded$ORF_start_percent <- df_expanded$ORF_start/df_expanded$transcript_le
 df_expanded$ORF_end_percent <- df_expanded$ORF_end/df_expanded$transcript_lengths
 ```
 
-```{r}
+```{r, echo=FALSE}
 ggplot(df_expanded, aes(x = ORF_start_percent, fill = factor(Cumulative_ORF_Count))) +
   geom_histogram() +
     scale_fill_hue(l=45)+
-  labs(x = "Start positions of ORFs inside of SplitORf transcript in %", y = "Frequency", fill = "Number of ORF inside the SplitORF transcript") +
+  labs(x = "Start positions of ORFs inside of SplitORf transcript in %", y = "Frequency", fill = "ORF position in SplitORF transcript") +
   theme_minimal()
 ```
-```{r}
+```{r, echo=FALSE}
 ggplot(df_expanded, aes(x = ORF_end_percent, fill = factor(Cumulative_ORF_Count))) +
   geom_histogram() +
     scale_fill_hue(l=45)+
-  labs(x = "End positions of ORFs inside of SplitORf transcript in %", y = "Frequency", fill = "Number of ORF inside the SplitORF transcript") +
+  labs(x = "End positions of ORFs inside of SplitORf transcript in %", y = "Frequency", fill = "ORF position in SplitORF transcript") +
   theme_minimal()
 ```
 
