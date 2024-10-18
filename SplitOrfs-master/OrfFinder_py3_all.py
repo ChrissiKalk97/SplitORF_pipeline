@@ -17,6 +17,7 @@ from Bio import SeqIO
 
 minOrfLength=50  #minimum number of amino acids per ORF
 
+
 #original codons functions by natasha.sernova obtained from Biostars:
 #https://www.biostars.org/p/229060/
 #code has been modified
@@ -67,9 +68,9 @@ def codons(seq,id,countOrfs):
                                         print(prot)
                                         countOrfs=countOrfs+1
                                 #remove all other start codons that are nested between the current start and stop
-                                while currentStart < len(lst1[frame]) and lst1[frame][currentStart] < lst2[frame][currentStop]:
-                                        currentStart=currentStart+1
-                                currentStop=currentStop+1
+                                #while currentStart < len(lst1[frame]) and lst1[frame][currentStart] < lst2[frame][currentStop]:
+                                currentStart=currentStart+1
+                                #currentStop=currentStop+1
                                 
                         elif lst1[frame][currentStart] > lst2[frame][currentStop]:
                                 currentStop=currentStop+1 
@@ -112,9 +113,10 @@ if len(sys.argv) < 2:
 else :
 
         transcripts=SeqIO.parse(sys.argv[1],'fasta')
-
+        #print(transcripts)
         countOrfs=1
         for record in transcripts:
+                #print(record.seq)
                 countOrfs=codons(str(record.seq), record.id ,countOrfs)
                 
         

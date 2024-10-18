@@ -15,8 +15,8 @@ def get_length_dist(bed_file):
     lengthdistribution=[]
     for line in bed_file:
         elems = line.split('\t')
-        temp=int(elems[2])-int(elems[1])
-        lengthdistribution.append(temp)
+        length=int(elems[2])-int(elems[1])
+        lengthdistribution.append(length)
     return lengthdistribution
 
 def get_seq_dictionary(fasta):
@@ -36,6 +36,7 @@ def get_random_fasta_ids(lengthdistribution, random_seqs):
     randomlist=[]
     for i in range(len(lengthdistribution)):
         random_key = random.choices(list(random_seqs.keys()), k=1)
+        #if key has already been sampled, randomly choose a new key
         while random_key in randomlist:
             random_key = random.choices(list(random_seqs.keys()), k=1)
         randomlist.append(random_key[0])
@@ -45,6 +46,7 @@ def get_random_fasta_ids(lengthdistribution, random_seqs):
 def write_bed_output(outname, randomlist, random_seqs, lengthdistribution):
     #for each length from the length distribution
         #get a random sample of the same length from the fasta sequence
+    random_list_reference = randomlist.copy()
     with open(outname, 'w') as out:
         i = len(randomlist) - 1
         while i > 0:
@@ -60,9 +62,10 @@ def write_bed_output(outname, randomlist, random_seqs, lengthdistribution):
                 #if the sampled fasta sequence is too short, sample a new random fasta entry
                 #and reappend the length to resample
                 random_key = random.choices(list(random_seqs.keys()), k=1)
-                while random_key in randomlist:
+                while random_key in random_list_reference:
                     random_key = random.choices(list(random_seqs.keys()), k=1)
                 randomlist.append(random_key[0])
+                random_list_reference.append(random_key[0])
                 lengthdistribution.append(length)
 
 

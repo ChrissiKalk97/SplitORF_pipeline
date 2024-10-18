@@ -77,7 +77,8 @@ else :
                 target=(elems[1]).split("|")
 
             orflength=orf[5].split("-")
-            blastOrfLength=int(orflength[1])-int(orflength[0]) + 2
+            blastOrfLength=int(orflength[1])-int(orflength[0])
+            #why +2 here? The format is one based so half-open, that means adding +1 should be sufficient!
             orfLenNuc=int(orf[4]) - int(orf[3])+1
             orfLenProt=orfLenNuc/float(3)
             alignLength=float(int(elems[9])-int(elems[8])+1)

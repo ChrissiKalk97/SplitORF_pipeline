@@ -41,7 +41,7 @@ file3=paste0(datapath,params[[1]][[3]])#transcripts
 transcripts = read.fasta(file3)
 
 #read in all the Ensembl IDs with transcript support level annotation
-validIds=read.unique_split_orfsle(file1,header=T)#,fill=T,stringsAsFactors=F) 
+validIds=read.table(file1,header=T)#,fill=T,stringsAsFactors=F) 
 
 unique_split_orfs = read.table(file2,header=T)#,fill=T,stringsAsFactors=F)
 
@@ -188,14 +188,21 @@ df_expanded$ORF_end_percent <- df_expanded$ORF_end/df_expanded$transcript_length
 ```
 
 ```{r, echo=FALSE}
-ggplot(df_expanded, aes(x = ORF_start_percent, fill = factor(Cumulative_ORF_Count))) +
+df_expanded$orf_number = "middle"
+df_expanded[df_expanded$Cumulative_ORF_Count == 1,]$orf_number = "first"
+max_ORF_rows <- df_expanded %>% group_by(OrfTransID) %>% slice(which.max(Cumulative_ORF_Count))
+df_expanded[df_expanded$OrfPos %in% max_ORF_rows$OrfPos, ]$orf_number = "last"
+```
+
+```{r, echo=FALSE}
+ggplot(df_expanded, aes(x = ORF_start_percent, fill = factor(orf_number))) +
   geom_histogram() +
     scale_fill_hue(l=45)+
   labs(x = "Start positions of ORFs inside of SplitORf transcript in %", y = "Frequency", fill = "ORF position in SplitORF transcript") +
   theme_minimal()
 ```
 ```{r, echo=FALSE}
-ggplot(df_expanded, aes(x = ORF_end_percent, fill = factor(Cumulative_ORF_Count))) +
+ggplot(df_expanded, aes(x = ORF_end_percent, fill = factor(orf_number))) +
   geom_histogram() +
     scale_fill_hue(l=45)+
   labs(x = "End positions of ORFs inside of SplitORf transcript in %", y = "Frequency", fill = "ORF position in SplitORF transcript") +

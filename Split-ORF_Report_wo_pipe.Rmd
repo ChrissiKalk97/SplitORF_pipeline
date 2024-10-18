@@ -183,15 +183,25 @@ df_expanded$ORF_start_percent <- df_expanded$ORF_start/df_expanded$transcript_le
 df_expanded$ORF_end_percent <- df_expanded$ORF_end/df_expanded$transcript_lengths
 ```
 
+
+```{r}
+df_expanded$orf_number = "middle"
+df_expanded[df_expanded$Cumulative_ORF_Count == 1,]$orf_number = "first"
+max_ORF_rows <- df_expanded %>% group_by(OrfTransID) %>% slice(which.max(Cumulative_ORF_Count))
+df_expanded[df_expanded$OrfPos %in% max_ORF_rows$OrfPos, ]$orf_number = "last"
+```
+
+
+
 ```{r, echo=FALSE}
-ggplot(df_expanded, aes(x = ORF_start_percent, fill = factor(Cumulative_ORF_Count))) +
+ggplot(df_expanded, aes(x = ORF_start_percent, fill = factor(orf_number))) +
   geom_histogram() +
     scale_fill_hue(l=45)+
   labs(x = "Start positions of ORFs inside of SplitORf transcript in %", y = "Frequency", fill = "ORF position in SplitORF transcript") +
   theme_minimal()
 ```
 ```{r, echo=FALSE}
-ggplot(df_expanded, aes(x = ORF_end_percent, fill = factor(Cumulative_ORF_Count))) +
+ggplot(df_expanded, aes(x = ORF_end_percent, fill = factor(orf_number))) +
   geom_histogram() +
     scale_fill_hue(l=45)+
   labs(x = "End positions of ORFs inside of SplitORf transcript in %", y = "Frequency", fill = "ORF position in SplitORF transcript") +
