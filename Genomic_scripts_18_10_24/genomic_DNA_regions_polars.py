@@ -3,14 +3,16 @@ import polars as pl
 
 def unique_coordinate_in_exon(coordinate: int, regions: pl.DataFrame):
     filtered = regions.filter(
-        (regions["start_trans"] <= coordinate) & (regions["end_trans"] >= coordinate)
+        #end coordinate has to be strictly greater as the end coordinate is not included
+        (regions["start_trans"] <= coordinate) & (regions["end_trans"] > coordinate)
     )
     if not filtered.is_empty():
+        #this returns the head of the df, and the number indicates how many lines are returned
         return filtered.head(1) 
     
 def unique_trans_coords_to_genomic(exon_trans_coords_one_region, one_region, f):
     # Step 2: Update the 'ID' column in one_region
-    ID_with_ORF = one_region[0] + one_region[3]
+    ID_with_ORF = one_region[0] +  ':' + one_region[3]
     start_unique = int(one_region[1])
     end_unique = int(one_region[2])
 
@@ -32,45 +34,60 @@ def unique_trans_coords_to_genomic(exon_trans_coords_one_region, one_region, f):
 
     if start_exon_gen_start != end_exon_gen_start:
         if strand == 1:
+            strand = '+'
             genomic_start = start_exon_gen_start + start_unique - start_exon_trans_start
             genomic_end = start_exon_gen_end
             #note down the first exon as the stop exon comes later, at least this exon is present until the end
-            f.write(chromosome + '\t' + str(genomic_start) + '\t' + str(genomic_end) + '\t' + ID_with_ORF + '\n')
+            f.write(chromosome + '\t' + str(genomic_start) + '\t' + str(genomic_end) + '\t' + ID_with_ORF + '\t' + str(0) + '\t' + str(strand) + '\n')
             current_exon_index = start_index + 1
-            while current_exon_index <= end_index:
+            while current_exon_index < end_index:
                 current_exon = exon_trans_coords_one_region.filter(exon_trans_coords_one_region['index'] == current_exon_index).row(0)
                 genomic_start = current_exon[2]
-                current_exon_trans_start = current_exon[4]
-                current_exon_trans_end = current_exon[5]
-                genomic_end = genomic_start + current_exon_trans_end - current_exon_trans_start
-                assert(end_unique >= current_exon_trans_start)
-                f.write(chromosome + '\t' + str(genomic_start) + '\t' + str(genomic_end) + '\t' + ID_with_ORF + '\n')
+                genomic_end = current_exon[3]
+                assert(end_unique > current_exon[4])#unique end needs to be larger than transcript end
+                assert(start_unique < current_exon[3])#unique start needs to be smaller than transcript start
+                f.write(chromosome + '\t' + str(genomic_start) + '\t' + str(genomic_end) + '\t' + ID_with_ORF +  '\t' + str(0) +'\t' + str(strand) + '\n')
                 current_exon_index += 1
+            #when we have reached the exon with the unique ending position
+            current_exon = exon_trans_coords_one_region.filter(exon_trans_coords_one_region['index'] == current_exon_index).row(0)
+            genomic_start = current_exon[2]
+            current_exon_trans_start = current_exon[4]
+            genomic_end = genomic_start + end_unique - current_exon_trans_start
+            f.write(chromosome + '\t' + str(genomic_start) + '\t' + str(genomic_end) + '\t' + ID_with_ORF + '\t' + str(0) + '\t' + str(strand) + '\n')
         elif strand == -1:
+            strand = '-'
             genomic_start = start_exon_gen_start 
             genomic_end = start_exon_gen_end - (start_unique - start_exon_trans_start)
             #note down the first exon as the stop exon comes later, at least this exon is present until the end
-            f.write(chromosome + '\t' + str(genomic_start) + '\t' + str(genomic_end) + '\t' + ID_with_ORF + '\n')
+            f.write(chromosome + '\t' + str(genomic_start) + '\t' + str(genomic_end) + '\t' + ID_with_ORF + '\t'  + str(0) + '\t' + str(strand) + '\n')
             current_exon_index = start_index + 1
-            while current_exon_index <= end_index:
+            while current_exon_index < end_index:
+                #we are in a middle exon, so the whole exon is included
                 current_exon = exon_trans_coords_one_region.filter(exon_trans_coords_one_region['index'] == current_exon_index).row(0)
                 genomic_end = current_exon[3]
-                current_exon_trans_start = current_exon[4]
-                current_exon_trans_end = current_exon[5]
-                genomic_start =  genomic_end - (current_exon_trans_end - current_exon_trans_start)
-                assert(end_unique >= current_exon_trans_start)
-                f.write(chromosome + '\t' + str(genomic_start) + '\t' + str(genomic_end) + '\t' + ID_with_ORF + '\n')
+                genomic_start =  current_exon[2]
+                assert(end_unique > current_exon[4])#unique end greater than transcript end of exon
+                f.write(chromosome + '\t' + str(genomic_start) + '\t' + str(genomic_end) + '\t' + ID_with_ORF + '\t' + str(0) + '\t' + str(strand) + '\n')
                 current_exon_index += 1
+            #when we have reached the exon with the unique ending position
+            current_exon = exon_trans_coords_one_region.filter(exon_trans_coords_one_region['index'] == current_exon_index).row(0)
+            genomic_end = current_exon[3]
+            current_exon_trans_start = current_exon[4]
+            genomic_start = genomic_end - (end_unique - current_exon_trans_start)
+            f.write(chromosome + '\t' + str(genomic_start) + '\t' + str(genomic_end) + '\t' + ID_with_ORF + '\t' + str(0) + '\t' + str(strand) + '\n')
+
 
     else:
         if strand == 1:
+            strand = '+'
             genomic_start = start_exon_gen_start + start_unique - start_exon_trans_start
             genomic_end = start_exon_gen_start  + end_unique - start_exon_trans_start
-            f.write(chromosome + '\t' + str(genomic_start) + '\t' + str(genomic_end) + '\t' + ID_with_ORF + '\n')
+            f.write(chromosome + '\t' + str(genomic_start) + '\t' + str(genomic_end) + '\t' + ID_with_ORF + '\t' + str(0) + '\t' + str(strand) + '\n')
         elif strand == -1:
+            strand = '-'
             genomic_start = start_exon_gen_end - (start_unique - start_exon_trans_start)
             genomic_end = start_exon_gen_end  - (end_unique - start_exon_trans_start)
-            f.write(chromosome + '\t' + str(genomic_end) + '\t' + str(genomic_start) + '\t' + ID_with_ORF + '\n')
+            f.write(chromosome + '\t' + str(genomic_end) + '\t' + str(genomic_start) + '\t' + ID_with_ORF + '\t' + str(0) + '\t' + str(strand) + '\n')
 
 
 
@@ -103,9 +120,9 @@ dtypes_exon_coords = {
 unique_DNA_regions_tr_coords = pl.read_csv(
     sys.argv[1],                   # File path from sys.argv[1]
     separator = '\t',                      # Use tab separator
-    has_header=False,              # No header in the file (equivalent to header=None in pandas)
-    new_columns=['ID', 'start_trans', 'end_trans', 'ORF'],  # Specify column names
-    schema_overrides=dtypes_unique_regions   # Define data types for each column
+    has_header = False,              # No header in the file (equivalent to header=None in pandas)
+    new_columns = ['ID', 'start_trans', 'end_trans', 'ORF'],  # Specify column names
+    schema_overrides = dtypes_unique_regions   # Define data types for each column
 )
 
 # Display the DataFrame

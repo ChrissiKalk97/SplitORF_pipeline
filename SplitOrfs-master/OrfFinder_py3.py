@@ -61,7 +61,7 @@ def codons(seq,id,countOrfs):
                                 if len(prot) >= minOrfLength :
                                         ##### added Frame to ID #####
                                         #print(''.join(['>',id,':ORF-',str(countOrfs),':',str(lst1[frame][currentStart]),':',str(lst2[frame][currentStop]+3)]))
-                                        print(''.join(['>',id,':ORF-',str(countOrfs),':',str(lst1[frame][currentStart]),':',str(lst2[frame][currentStop]+2)]))
+                                        print(''.join(['>',id,':ORF-',str(countOrfs),':',str(lst1[frame][currentStart]),':',str(lst2[frame][currentStop]+3)]))
                                         #depends on the coordinate system to use, if one based then this with 3 would be correct, but we start counting the 
                                         #orfs from 0 and not from 1, so this should be +2 to stay in the 0-based coordinate system
                                         print(prot)

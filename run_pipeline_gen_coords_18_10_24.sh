@@ -41,7 +41,7 @@ RED='\033[0;31m' #Red colour for error messages
 NC='\033[0m'	 #No colour for normal messages
 
 # ----- check for right number of arguments ----- #
-if [ "$#" -ne 7 ]; then 
+if [ "$#" -ne 6 ]; then 
   echo -e "${RED}
 ERROR while executing the Pipeline!
 Wrong number of arguments.${NC}"
@@ -49,7 +49,7 @@ Wrong number of arguments.${NC}"
   exit 1
   
 # ----- check if any argument is a directory ----- #
-elif  [ -d "$1" ] || [ -d "$2" ] || [ -d "$3" ] || [ -d "$4" ] || [ -d "$5" ] || [ -d "$6" ] || [ -d "$6" ]; then
+elif  [ -d "$1" ] || [ -d "$2" ] || [ -d "$3" ] || [ -d "$4" ] || [ -d "$5" ] || [ -d "$6" ] ; then
   echo -e "${RED}
 ERROR while executing the Pipeline!
 One or more of the arguments are directories.${NC}"
@@ -57,7 +57,7 @@ One or more of the arguments are directories.${NC}"
   exit 1
   
 # ----- check if every argument has the correct file extension ----- #
-elif ! [[ $1 =~ \.fa$ ]] || ! [[ $2 =~ \.fa$ ]] || ! [[ $3 =~ \.bed$ ]] || ! [[ $4 =~ \.fa$ ]] || ! [[ $5 =~ \.bed$ ]] || ! [[ $6 =~ \.bed$ ]]; then
+elif ! [[ $1 =~ \.fa$ ]] || ! [[ $2 =~ \.fa$ ]] || ! [[ $3 =~ \.bed$ ]] || ! [[ $4 =~ \.fa$ ]] || ! [[ $5 =~ \.bed$ ]]; then
   echo -e "${RED}
 ERROR while executing the Pipeline!
 One or more of the arguments are not in the specified file format.${NC}"
@@ -70,9 +70,8 @@ proteins=$1
 transcripts=$2
 annotation=$3
 proteinCodingTranscripts=$4
-genomicpositions=$5
-exonPositions=$6
-align_method=$7
+exonPositions=$5
+align_method=$6
 
 # ----- create the directory "Output" if it does not already exist ----- #
 if [ -d "./Output" ]
@@ -107,7 +106,7 @@ source $(conda info --base)/etc/profile.d/conda.sh
 conda activate SplitORF
 output="./Output/run_$timestamp"
 echo "*********$output**********"
-echo "run the Pipeline with: " $output $proteins $transcripts $annotation $proteinCodingTranscripts $genomicpositions $exonPositions
+echo "run the Pipeline with: " $output $proteins $transcripts $annotation $proteinCodingTranscripts $exonPositions
 
 # ----- create Orf sequences using the OrfFinder script ----- #
 echo "searching for possible ORFs"
@@ -228,23 +227,25 @@ exonPositionsSorted=$(basename $exonPositions .bed)_sorted.bed
 awk '$7 == "1"' $exonPositions | sort -k1,1 -k2,2 -k3,3n > ./Output/run_$timestamp/plus_strand.bed
 awk '$7 == "-1"' $exonPositions | sort -k1,1 -k2,2 -k4,4nr > ./Output/run_$timestamp/minus_strand.bed
 cat ./Output/run_$timestamp/plus_strand.bed ./Output/run_$timestamp/minus_strand.bed > $exonPositionsSorted
-rm ./Output/run_$timestamp/plus_strand.bed
-rm ./Output/run_$timestamp/minus_strand.bed
+#rm ./Output/run_$timestamp/plus_strand.bed
+#rm ./Output/run_$timestamp/minus_strand.bed
 
 # ----- Get the genomic positions for the unique DNA and protein regions ----- #
 echo "Change the Positions of the unique DNA and Protein as well as the ValidORF bed to their positions within the unspliced transcript"
 exonPositionsTranscriptPositions=$(basename $exonPositions .bed)_transcript_positions.bed
 echo "Change the positions to their genomic equivalent and transform into UCSC format"
 python ./Genomic_scripts_18_10_24/ExonToTranscriptPositions.py $exonPositionsSorted $exonPositionsTranscriptPositions
-rm $exonPositionsSorted
-python ./Genomic_scripts/genomic_DNA_regions.py $genomicpositions $exonPositionsTranscriptPositions ./Output/run_$timestamp/Unique_DNA_Regions_for_riboseq.bed ./Output/run_$timestamp/Unique_DNA_regions_genomic.bed
-python ./Genomic_scripts/genomic_DNA_regions.py $genomicpositions $exonPositionsTranscriptPositions ./Output/run_$timestamp/Unique_Protein_Regions_transcript_coords.bed ./Output/run_$timestamp/Unique_Protein_regions_genomic.bed
+#rm $exonPositionsSorted
+python ./Genomic_scripts_18_10_24/genomic_DNA_regions_polars.py  ./Output/run_$timestamp/Unique_DNA_Regions_for_riboseq.bed $exonPositionsTranscriptPositions ./Output/run_$timestamp/Unique_DNA_regions_genomic.bed
+python ./Genomic_scripts_18_10_24/genomic_DNA_regions_polars.py  ./Output/run_$timestamp/Unique_Protein_Regions_transcript_coords.bed $exonPositionsTranscriptPositions ./Output/run_$timestamp/Unique_Protein_regions_genomic.bed
 
 
-# ----- calculate overlap between unique DNA and protein regions         ----- #
-echo "calculate overlap between unique DNA and protein regions"
+# ----- calculate overlap between unique DNA and protein regions genomic         ----- #
+echo "calculate genomic overlap between unique DNA and protein regions"
 bedtools intersect -a ./Output/run_$timestamp/Unique_DNA_regions_genomic.bed -b ./Output/run_$timestamp/Unique_Protein_regions_genomic.bed > ./Output/run_$timestamp/Unique_Regions_Overlap.bed
-
+# ----- calculate overlap between unique DNA and protein regions transcriptomic         ----- #
+echo "calculate transcriptomic overlap between unique DNA and protein regions"
+bedtools intersect -a ./Output/run_$timestamp/Unique_DNA_Regions_for_riboseq.bed -b ./Output/run_$timestamp/Unique_Protein_Regions_transcript_coords.bed > ./Output/run_$timestamp/Unique_Regions_Overlap_transcriptomic.bed
 
 # ----- Create a report with basics statistics of the uniqueness scripts                       ----- #
 R -e "rmarkdown::render('Extended_Pipeline_new.Rmd',output_file='./Output/run_$timestamp/Uniqueness_Report.html',
