@@ -115,13 +115,13 @@ python ./SplitOrfs-master/OrfFinder_py3.py $transcripts > $output/OrfProteins.fa
 # ----- Determine Unique Protein regions by calling mummer maxmatch with a minimum length of 10, annotating the ----- #
 # ----- matches (non-unique regions) in a bedfile and using bedtools subtract to get the non matching regions   ----- #
 # ----- which are then annotated as the unique regions in another bedfile                                       ----- #
-echo "Align ORF-transcripts(Protein) to protein coding transcripts mummer -maxmatch -l 8"
+echo "Align ORF-transcripts(Protein) to protein coding transcripts mummer -maxmatch -l 6"
 #proteins instead of proteins2: match against all protein coding transcripts and not only the longest ones!!!
-mummer -maxmatch -l 8 $proteins ./Output/run_$timestamp/OrfProteins.fa > ./Output/run_$timestamp/Proteins_maxmatch_l8.mums
+mummer -maxmatch -l 6 $proteins ./Output/run_$timestamp/OrfProteins.fa > ./Output/run_$timestamp/Proteins_maxmatch_l8.mums
 
 echo "Select the non matching regions as unique regions and save as bedfile"
 python ./Uniqueness_scripts/Find_Unique_Regions.py ./Output/run_$timestamp/Proteins_maxmatch_l8.mums ./Output/run_$timestamp/Protein_non_unique.bed ./Output/run_$timestamp/OrfProteins.fa ./Output/run_$timestamp/OrfProteins.bed ./Output/run_$timestamp/Unique_Protein_Regions.bed
-python ./Uniqueness_scripts/Filter_small_regions.py $output/Unique_Protein_Regions.bed 8 $output/Unique_Protein_Regions_gt8.bed
+python ./Uniqueness_scripts/Filter_small_regions.py $output/Unique_Protein_Regions.bed 6 $output/Unique_Protein_Regions_gt8.bed
 
 echo "Select only the non-unique regions for the upcoming blast"
 bedtools subtract -a $output/OrfProteins.bed -b $output/Unique_Protein_Regions_gt8.bed > $output/ProteinRegionsforBlast.bed
@@ -217,11 +217,6 @@ python ./Uniqueness_scripts/filter_unique_regions.py ./Output/run_$timestamp/Uni
 echo "Finishing Steps"
 bedtools getfasta -fi ./Output/run_$timestamp/ValidORF_DNA_Sequences.fa -fo ./Output/run_$timestamp/Unique_DNA_regions.fa -bed ./Output/run_$timestamp/Unique_DNA_Regions_gt20_filtered.bed
 bedtools getfasta -fi ./Output/run_$timestamp/ORFProteins.fa -fo ./Output/run_$timestamp/Unique_Protein_regions.fa -bed ./Output/run_$timestamp/Unique_Protein_Regions_gt8_valid_filtered.bed
-
-# ----- get the ORF seqeunces of those predicted proteins with unique regions  ----- #
-python ./Uniqueness_scripts/get_protein_seqs_for_Masspec.py ./Output/run_$timestamp/Unique_Protein_regions.fa\
- ./Output/run_$timestamp/OrfProteins.fa\
- ./Output/run_$timestamp/Proteins_with_unique_regions_for_masspec.fa
 
 # ----- Reorganize Unique_DNA_Regions_gt20.bed for later intersection with riboseq Alignment ----- #
 #the position of the unique region is given with respect to the transcript and not the ORF!
