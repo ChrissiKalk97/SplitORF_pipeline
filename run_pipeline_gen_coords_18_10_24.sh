@@ -111,6 +111,7 @@ then
 	exit 1
 else
 	mkdir ./Output/run_$timestamp
+  mkdir ./Output/run_$timestamp/tests
 fi
 
 # ----- Create a log file that saves all text outputs of the pipeline ----- #
@@ -310,19 +311,9 @@ python ./Uniqueness_scripts/Bedreorganize_Proteins.py \
 exonPositionsSorted=$(basename $exonPositions .bed)_sorted.bed
 awk '$7 == "1"' $exonPositions | sort -k1,1 -k2,2 -k3,3n > ./Output/run_$timestamp/plus_strand.bed
 awk '$7 == "-1"' $exonPositions | sort -k1,1 -k2,2 -k4,4nr > ./Output/run_$timestamp/minus_strand.bed
-cat ./Output/run_$timestamp/plus_strand.bed ./Output/run_$timestamp/minus_strand.bed > $exonPositionsSorted
+cat ./Output/run_$timestamp/plus_strand.bed ./Output/run_$timestamp/minus_strand.bed > ./Output/run_$timestamp/$exonPositionsSorted
 rm ./Output/run_$timestamp/plus_strand.bed
 rm ./Output/run_$timestamp/minus_strand.bed
-
-# ----- Test functionality of the exon coordinate conversion ----- #
-mkdir ./Output/run_$timestamp/tests
-python ./Genomic_scripts_18_10_24/ExonToTranscriptPositions.py\
- ./Genomic_scripts_18_10_24/exon_transcript_positions_unit_test.bed\
-  ./Output/run_$timestamp/tests/exon_transcript_positions_results.bed
-python ./Genomic_scripts_18_10_24/test_transcript_exon_positions.py\
- ./Output/run_$timestamp/tests/exon_transcript_positions_results.bed
-
-
 
 
 # ----- Get the genomic positions for the unique DNA and protein regions ----- #
@@ -330,8 +321,24 @@ echo "Change the Positions of the unique DNA and Protein as well as the ValidORF
 exonPositionsTranscriptPositions=$(basename $exonPositions .bed)_transcript_positions.bed
 echo "Change the positions to their genomic equivalent and transform into UCSC format"
 python ./Genomic_scripts_18_10_24/ExonToTranscriptPositions.py\
- $exonPositionsSorted\
+ ./Output/run_$timestamp/$exonPositionsSorted\
   ./Output/run_$timestamp/$exonPositionsTranscriptPositions
+
+
+# ----- Test functionality of the exon coordinate conversion ----- #
+mkdir ./Output/run_$timestamp/tests
+python ./Genomic_scripts_18_10_24/ExonToTranscriptPositions.py\
+ ./Genomic_scripts_18_10_24/exon_transcript_positions_unit_test.bed\
+  ./Output/run_$timestamp/tests/exon_transcript_positions_results.bed
+
+python ./Genomic_scripts_18_10_24/test/test_transcript_exon_positions.py\
+ ./Output/run_$timestamp/tests/exon_transcript_positions_results.bed\
+ ./Output/run_$timestamp/$exonPositionsSorted\
+ ./Output/run_$timestamp/$exonPositionsTranscriptPositions
+ 
+
+
+
 
 #rm $exonPositionsSorted
 python ./Genomic_scripts_18_10_24/genomic_DNA_regions_polars.py\
@@ -343,6 +350,11 @@ python ./Genomic_scripts_18_10_24/genomic_DNA_regions_polars.py\
  ./Output/run_$timestamp/Unique_Protein_Regions_transcript_coords.bed\
  ./Output/run_$timestamp/$exonPositionsTranscriptPositions\
  ./Output/run_$timestamp/Unique_Protein_regions_genomic.bed
+
+# ----- Test functionality of unique region to genomic coordinate conversion ----- #
+python ./Genomic_scripts_18_10_24/test/test_transcriptomic_to_genomic_coordinates.py\
+ ./Genomic_scripts_18_10_24/test/test_conversion_with_gen_trans.bed\
+ ./Output/run_$timestamp/Unique_DNA_regions_genomic.bed
 
 
 # ----- calculate overlap between unique DNA and protein regions genomic         ----- #

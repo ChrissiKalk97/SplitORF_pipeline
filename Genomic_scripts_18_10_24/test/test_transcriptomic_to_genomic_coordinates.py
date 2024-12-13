@@ -8,7 +8,8 @@ import pandas as pd
 # unique region crossing exon borders and on minus strand
 # ENST00000306450:ORF-907
 # positive strand covering 3 exons
-
+# ENSG00000007341|ENST00000361846:ORF-1506
+# minus strand with the start coordinate being the start of the exon (end in transcript universe)
 
 transcript_coords_test = pd.read_csv(
     sys.argv[1], sep='\t', header=None, names=['chr', 'gen_start', 'gen_stop', 'ID',  'phase', 'strand'])

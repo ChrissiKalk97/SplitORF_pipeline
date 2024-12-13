@@ -153,8 +153,6 @@ unique_DNA_regions_tr_coords = pl.read_csv(
     schema_overrides=dtypes_unique_regions   # Define data types for each column
 )
 
-# Display the DataFrame
-print(unique_DNA_regions_tr_coords)
 
 exon_trans_coords = pl.read_csv(
     sys.argv[2],
@@ -165,8 +163,6 @@ exon_trans_coords = pl.read_csv(
     schema_overrides=dtypes_exon_coords
 )
 exon_trans_coords = exon_trans_coords.with_row_index("index")
-print(exon_trans_coords)
-print(type(exon_trans_coords))
 
 
 with open(sys.argv[3], 'w') as f:
