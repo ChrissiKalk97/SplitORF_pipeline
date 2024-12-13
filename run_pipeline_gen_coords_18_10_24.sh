@@ -196,6 +196,7 @@ python ./Uniqueness_scripts/Select_validORF_DNA_sequences.py $transcripts ./Outp
 # ----- Determine Unique DNA regions by calling mummer maxmatch with a minimum length of 20, annotating the matches ----- #
 # ----- (non unique regions) in a bedfile and using bedtools subtract to get the non matching regions which are     ----- #
 # ----- then annotated as the unique regions in another bedfile                                                     ----- #
+# ----- 20 i sth edefualt parameter for -l matchlength                                                              ----- #
 echo "Align ORF-transcripts(DNA) to protein coding transcripts with mummer -maxmatch"
 mummer -maxmatch $proteinCodingTranscripts ./Output/run_$timestamp/ValidORF_DNA_Sequences.fa > ./Output/run_$timestamp/DNA_maxmatch.mums
 echo "Select the non matching regions as unique regions and save as bedfile"

@@ -37,6 +37,7 @@ def get_fasta_sequences(Split_orf_ids, fasta_name, outname):
                         for ORF in list_ORFs:
                             if ORF == header_info[2]:
                                 # print(transcript_id,  header_info[1], ORF, header_info[2])
+                                record.id = 'sp|' + record.id + '|'
                                 SeqIO.write(record, fout, "fasta")
     fin.close()
     fout.close()
