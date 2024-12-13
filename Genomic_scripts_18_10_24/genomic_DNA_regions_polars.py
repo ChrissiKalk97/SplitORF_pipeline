@@ -2,12 +2,19 @@ import sys
 import polars as pl
 
 
-def unique_coordinate_in_exon(coordinate: int, regions: pl.DataFrame):
-    filtered = regions.filter(
-        # end coordinate has to be strictly greater as the end coordinate is not included
-        (regions["start_trans"] <= coordinate) & (
-            regions["end_trans"] > coordinate)
-    )
+def unique_coordinate_in_exon(coordinate: int, regions: pl.DataFrame, end=False):
+    if end:
+        filtered = regions.filter(
+            # end coordinate can be the same as the end coordinate is not included, both times
+            (regions["start_trans"] <= coordinate) & (
+                regions["end_trans"] >= coordinate)
+        )
+    else:
+        filtered = regions.filter(
+            # end coordinate has to be strictly greater as the end coordinate is not included
+            (regions["start_trans"] <= coordinate) & (
+                regions["end_trans"] > coordinate)
+        )
     if not filtered.is_empty():
         # this returns the head of the df, and the number indicates how many lines are returned
         return filtered.head(1)
@@ -24,7 +31,7 @@ def unique_trans_coords_to_genomic(exon_trans_coords_one_region, one_region, f):
     start_exon = unique_coordinate_in_exon(
         start_unique, exon_trans_coords_one_region)
     end_exon = unique_coordinate_in_exon(
-        end_unique, exon_trans_coords_one_region)
+        end_unique, exon_trans_coords_one_region, end=True)
     start_exon = start_exon.row(0)
     end_exon = end_exon.row(0)
     start_index = int(start_exon[0])

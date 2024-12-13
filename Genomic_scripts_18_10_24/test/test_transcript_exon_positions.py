@@ -25,8 +25,7 @@ assert whole_transcript_length['ENSG00000163138|ENST00000508952'] == 987, 'trans
 assert whole_transcript_length['ENSG00000126524|ENST00000697861'] == 1339, 'transcript length of ENST00000697861 incorrect'
 assert whole_transcript_length['ENSG00000126524|ENST00000697862'] == 1532, 'transcript length of ENST00000697862 incorrect'
 
-print(transcript_coords_test[transcript_coords_test['ID'] ==
-                             'ENSG00000126524|ENST00000697862']['gen_start'].min())
+
 # for the minus strand take one transcript and check coordiantes with Ensembl directly
 assert transcript_coords_test[transcript_coords_test['ID'] ==
                               'ENSG00000126524|ENST00000697862']['gen_start'].min() == 66987700 - 1

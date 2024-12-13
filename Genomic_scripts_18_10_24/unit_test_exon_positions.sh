@@ -1,5 +1,0 @@
-#!/bin/bash
-
-python ExonToTranscriptPositions.py exon_transcript_positions_unit_test.bed exon_transcript_positions_results.bed
-python test_transcript_exon_positions.py exon_transcript_positions_results.bed
-

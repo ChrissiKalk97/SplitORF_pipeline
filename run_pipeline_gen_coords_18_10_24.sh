@@ -6,21 +6,41 @@
 
 # ----- Help message: ----- #
 usage="
-Usage: ./run_pipeline.sh [-h] proteins.fa transcripts.fa annotation.bed longestproteincodingtranscripts_DNA.fa longestproteincodingtranscripts_Protein.fa GenomicPositions.bed exonPositions.bed
+Usage: ./run_pipeline.sh [-h] proteins.fa transcripts.fa annotation.bed \\
+    longestproteincodingtranscripts_DNA.fa longestproteincodingtranscripts_Protein.fa \\
+    GenomicPositions.bed exonPositions.bed
 
-proteins.fa 			should be a multi fasta file containing the amino acid sequences of the proteins that are used as reference (whole transcriptome).
-transcripts.fa 			should be a multi fasta file containing the DNA sequences of the reads/transcripts that shall be analyzed.
-annotation.bed 			should be a bedfile containing the annotations for the used genome build.
-				The standard annotation files for human and mouse (ENSEMBL 95) can be found in the annotations directory in the SplitORF directory.
-proteincodingtranscripts   CDS region as DNA sequence of all protein coding transcripts, can be downloaded from Ensmebl by selecting Sequence and coding regions
-GenomicPositions.bed		A bed file containing the chromosome specific positions of all transcripts
-should be in the format: Gene stable ID	Transcript stable ID	Chromosome/scaffold name	Transcript start (bp)	Transcript end (bp) Strand
-exonPositions.bed			A bed file containing the chromosome specific position of all exons
-should be in the format: Gene stable ID	Transcript stable ID	Exon region start (bp)	Exon region end (bp)	Transcript start (bp)	Transcript end (bp)	Strand
-Tipp: The longest Isoforms can be extracted using the getLongestIsoform.py script within the Uniqueness_scripts folder (fastas must be sorted beforehand e.g. with seqkit sort)
+Arguments:
+  proteins.fa
+      A multi-FASTA file containing the amino acid sequences of the proteins
+      that are used as references (whole transcriptome, downloaded from Ensembl version 110).
 
-where:
--h	show this help"
+  transcripts.fa
+      A multi-FASTA file containing the DNA sequences of the reads/transcripts
+      that shall be analyzed.
+
+  annotation.bed
+      A BED file containing the annotations for the used genome build.
+      The standard annotation files for human and mouse () can be
+      found in the 'annotations' directory within the 'SplitORF' directory.
+
+  reference_transcripts.fa
+      A multi-FASTA file of all reference transcripts (should not contain the inout
+      transcripts).
+
+  exonPositions.bed
+      A BED file containing the chromosome-specific positions of all exons.
+      These can be downloaded from Biomart using the structures functionality.
+      Format:
+        Gene stable ID	Transcript stable ID	Exon region start (bp)	
+        Exon region end (bp)	Transcript start (bp)	Transcript end (bp)
+        	Strand	Chromosome/scaffold name
+
+
+Options:
+  -h    Show this help message.
+"
+
 
 # ----- available options for the programm -----#
 while getopts ':h' option; do
@@ -225,25 +245,39 @@ python ./Uniqueness_scripts/get_protein_seqs_for_Masspec.py ./Output/run_$timest
  ./Output/run_$timestamp/Proteins_with_unique_regions_for_masspec.fa
 
 # ----- Reorganize Unique_DNA_Regions_gt20.bed for later intersection with riboseq Alignment ----- #
-#the position of the unique region is given with respect to the transcript and not the ORF!
-python ./Uniqueness_scripts/Bedreorganize_adapted.py ./Output/run_$timestamp/Unique_DNA_Regions_gt20_filtered.bed ./Output/run_$timestamp/Unique_DNA_Regions_for_riboseq.bed
-python ./Uniqueness_scripts/Bedreorganize_Proteins.py ./Output/run_$timestamp/Unique_Protein_Regions_gt8_valid_filtered.bed ./Output/run_$timestamp/Unique_Protein_Regions_transcript_coords.bed
+# Note: The position of the unique region is given with respect to the transcript and not the ORF!
+python ./Uniqueness_scripts/Bedreorganize_adapted.py \
+    ./Output/run_$timestamp/Unique_DNA_Regions_gt20_filtered.bed \
+    ./Output/run_$timestamp/Unique_DNA_Regions_for_riboseq.bed
+
+python ./Uniqueness_scripts/Bedreorganize_Proteins.py \
+    ./Output/run_$timestamp/Unique_Protein_Regions_gt8_valid_filtered.bed \
+    ./Output/run_$timestamp/Unique_Protein_Regions_transcript_coords.bed
+
 
 exonPositionsSorted=$(basename $exonPositions .bed)_sorted.bed
 awk '$7 == "1"' $exonPositions | sort -k1,1 -k2,2 -k3,3n > ./Output/run_$timestamp/plus_strand.bed
 awk '$7 == "-1"' $exonPositions | sort -k1,1 -k2,2 -k4,4nr > ./Output/run_$timestamp/minus_strand.bed
 cat ./Output/run_$timestamp/plus_strand.bed ./Output/run_$timestamp/minus_strand.bed > $exonPositionsSorted
-#rm ./Output/run_$timestamp/plus_strand.bed
-#rm ./Output/run_$timestamp/minus_strand.bed
+rm ./Output/run_$timestamp/plus_strand.bed
+rm ./Output/run_$timestamp/minus_strand.bed
+
+# ----- Test functionality of the exon coordinate conversion ----- #
+mkdir ./Output/run_$timestamp/tests
+python ./Genomic_scripts_18_10_24/ExonToTranscriptPositions.py ./Genomic_scripts_18_10_24/exon_transcript_positions_unit_test.bed ./Output/run_$timestamp/tests/exon_transcript_positions_results.bed
+python ./Genomic_scripts_18_10_24/test_transcript_exon_positions.py ./Output/run_$timestamp/tests/exon_transcript_positions_results.bed
+
+
+
 
 # ----- Get the genomic positions for the unique DNA and protein regions ----- #
 echo "Change the Positions of the unique DNA and Protein as well as the ValidORF bed to their positions within the unspliced transcript"
 exonPositionsTranscriptPositions=$(basename $exonPositions .bed)_transcript_positions.bed
 echo "Change the positions to their genomic equivalent and transform into UCSC format"
-python ./Genomic_scripts_18_10_24/ExonToTranscriptPositions.py $exonPositionsSorted $exonPositionsTranscriptPositions
+python ./Genomic_scripts_18_10_24/ExonToTranscriptPositions.py $exonPositionsSorted ./Output/run_$timestamp/$exonPositionsTranscriptPositions
 #rm $exonPositionsSorted
-python ./Genomic_scripts_18_10_24/genomic_DNA_regions_polars.py  ./Output/run_$timestamp/Unique_DNA_Regions_for_riboseq.bed $exonPositionsTranscriptPositions ./Output/run_$timestamp/Unique_DNA_regions_genomic.bed
-python ./Genomic_scripts_18_10_24/genomic_DNA_regions_polars.py  ./Output/run_$timestamp/Unique_Protein_Regions_transcript_coords.bed $exonPositionsTranscriptPositions ./Output/run_$timestamp/Unique_Protein_regions_genomic.bed
+python ./Genomic_scripts_18_10_24/genomic_DNA_regions_polars.py  ./Output/run_$timestamp/Unique_DNA_Regions_for_riboseq.bed ./Output/run_$timestamp/$exonPositionsTranscriptPositions ./Output/run_$timestamp/Unique_DNA_regions_genomic.bed
+python ./Genomic_scripts_18_10_24/genomic_DNA_regions_polars.py  ./Output/run_$timestamp/Unique_Protein_Regions_transcript_coords.bed ./Output/run_$timestamp/$exonPositionsTranscriptPositions ./Output/run_$timestamp/Unique_Protein_regions_genomic.bed
 
 
 # ----- calculate overlap between unique DNA and protein regions genomic         ----- #
