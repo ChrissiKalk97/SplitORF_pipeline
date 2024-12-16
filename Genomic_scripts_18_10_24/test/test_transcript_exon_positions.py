@@ -40,8 +40,8 @@ exon_coords = pd.read_csv(
 # sort both dataframes by start coordinate to ensure the same ordering for the
 # following comparison of start coordinates
 transcript_coords_full = transcript_coords_full.sort_values(
-    by=['gen_start', 'chr'])
-exon_coords = exon_coords.sort_values(by=['gen_start', 'chr'])
+    by=['chr', 'gen_start'])
+exon_coords = exon_coords.sort_values(by=['chr', 'gen_start'])
 
 assert (transcript_coords_full['gen_start']
         == exon_coords['gen_start'] - 1).all()

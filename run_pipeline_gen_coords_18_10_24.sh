@@ -328,7 +328,7 @@ python ./Genomic_scripts_18_10_24/ExonToTranscriptPositions.py\
 # ----- Test functionality of the exon coordinate conversion ----- #
 mkdir ./Output/run_$timestamp/tests
 python ./Genomic_scripts_18_10_24/ExonToTranscriptPositions.py\
- ./Genomic_scripts_18_10_24/exon_transcript_positions_unit_test.bed\
+ ./Genomic_scripts_18_10_24/test/exon_transcript_positions_unit_test.bed\
   ./Output/run_$timestamp/tests/exon_transcript_positions_results.bed
 
 python ./Genomic_scripts_18_10_24/test/test_transcript_exon_positions.py\
@@ -360,9 +360,9 @@ python ./Genomic_scripts_18_10_24/test/test_transcriptomic_to_genomic_coordinate
 # ----- calculate overlap between unique DNA and protein regions genomic         ----- #
 echo "calculate genomic overlap between unique DNA and protein regions"
 bedtools intersect\
- -a ./Output/run_$timestamp/Unique_DNA_regions_genomic.bed\ 
+ -a ./Output/run_$timestamp/Unique_DNA_regions_genomic.bed\
  -b ./Output/run_$timestamp/Unique_Protein_regions_genomic.bed\
- > ./Output/run_$timestamp/Unique_Regions_Overlap.bed
+ > ./Output/run_$timestamp/Unique_Regions_Overlap_genomic.bed
 
 
 # ----- calculate overlap between unique DNA and protein regions transcriptomic         ----- #
@@ -372,13 +372,21 @@ bedtools intersect\
  -b ./Output/run_$timestamp/Unique_Protein_Regions_transcript_coords.bed\
  > ./Output/run_$timestamp/Unique_Regions_Overlap_transcriptomic.bed
 
+
+
 # ----- Create a report with basics statistics of the uniqueness scripts                       ----- #
 R -e "rmarkdown::render('Extended_Pipeline_new.Rmd',output_file='./Output/run_$timestamp/Uniqueness_Report.html',
 params=list(args = c('/Output/run_$timestamp/Unique_DNA_Regions.fa', 
 '/Output/run_$timestamp/Unique_Protein_Regions.fa',
 '/Output/run_$timestamp/Unique_DNA_Regions_gt20_filtered.bed', 
 '/Output/run_$timestamp/Unique_Protein_Regions_gt8_valid_filtered.bed',
-'/Output/run_$timestamp/UniqueProteinORFPairs.txt')))"
+'/Output/run_$timestamp/UniqueProteinORFPairs.txt',
+'/Output/run_$timestamp/Unique_DNA_Regions_for_riboseq.bed',
+'/Output/run_$timestamp/Unique_Protein_Regions_transcript_coords.bed',
+'/Output/run_$timestamp/Unique_DNA_regions_genomic.bed',
+'/Output/run_$timestamp/Unique_Protein_regions_genomic.bed',
+'/Output/run_$timestamp/Unique_Regions_Overlap_transcriptomic.bed',
+'/Output/run_$timestamp/Unique_Regions_Overlap_genomic.bed')))"
 
 
 

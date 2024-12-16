@@ -18,6 +18,10 @@ library(geomtextpath)
 library(tidyr)
 library(stringr)
 library(dplyr)
+library(VennDiagram)
+library(RColorBrewer)
+library(readr)
+library(grid)
 ```
 
 
@@ -34,12 +38,24 @@ file2=paste0(datapath,params[[1]][[2]])
 file3=paste0(datapath,params[[1]][[3]])
 file4=paste0(datapath,params[[1]][[4]])
 file5=paste0(datapath,params[[1]][[5]])
+file6 = paste0(datapath,params[[1]][[6]])
+file7 = paste0(datapath,params[[1]][[7]])
+file8 = paste0(datapath,params[[1]][[8]])
+file9 = paste0(datapath,params[[1]][[9]])
+file10 = paste0(datapath,params[[1]][[10]])
+file11 = paste0(datapath,params[[1]][[11]])
 
-# file1 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_04.09.2024-10.12.40_NMD_trans_all_ref_filtered/Unique_DNA_regions.fa'
-# file2 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_04.09.2024-10.12.40_NMD_trans_all_ref_filtered/Unique_Protein_regions.fa'
-# file3 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_04.09.2024-10.12.40_NMD_trans_all_ref_filtered/Unique_DNA_Regions_gt20_filtered.bed'
-# file4 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_04.09.2024-10.12.40_NMD_trans_all_ref_filtered/Unique_Protein_Regions_gt8_valid_filtered.bed'
-# file5 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_04.09.2024-10.12.40_NMD_trans_all_ref_filtered/UniqueProteinORFPairs.txt'
+# file1 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_16.12.2024-10.20.59_NMD_genomic_correction/Unique_DNA_regions.fa'
+# file2 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_16.12.2024-10.20.59_NMD_genomic_correction/Unique_Protein_regions.fa'
+# file3 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_16.12.2024-10.20.59_NMD_genomic_correction/Unique_DNA_Regions_gt20_filtered.bed'
+# file4 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_16.12.2024-10.20.59_NMD_genomic_correction/Unique_Protein_Regions_gt8_valid_filtered.bed'
+# file5 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_16.12.2024-10.20.59_NMD_genomic_correction/UniqueProteinORFPairs.txt'
+# file6 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_16.12.2024-10.20.59_NMD_genomic_correction/Unique_DNA_Regions_for_riboseq.bed'
+# file7 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_16.12.2024-10.20.59_NMD_genomic_correction/Unique_Protein_Regions_transcript_coords.bed'
+# file8 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_16.12.2024-10.20.59_NMD_genomic_correction/Unique_DNA_regions_genomic.bed'
+# file9 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_16.12.2024-10.20.59_NMD_genomic_correction/Unique_Protein_regions_genomic.bed'
+# file10 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_16.12.2024-10.20.59_NMD_genomic_correction/Unique_Regions_Overlap_transcriptomic.bed'
+# file11 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_28.11.2024-10.28.44_NMD_genomic_regions_with_unique_trans_coords/Unique_Regions_Overlap.bed'
 
 # file1 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_11.09.2024-11.12.39_blast_all_NMD_ref_filtered_non_overlapping/Unique_DNA_regions.fa'
 # file2 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_11.09.2024-11.12.39_blast_all_NMD_ref_filtered_non_overlapping/Unique_Protein_regions.fa'
@@ -292,4 +308,79 @@ cat(paste0("Number of transcripts with unique Protein region:\t",length(unique(P
 cat(paste0("Number of transcripts with unique DNA and Protein region:\t",length(intersect(DNA_ids,Protein_ids)),"  \n"))
 ```
 
+# Overlap of unique protein and DNA regions
+## transcriptomic
+```{r}
 
+DNA_regions_transcriptomic <- readr::read_tsv(file6, col_names = FALSE)
+protein_regions_transcriptomic <- readr::read_tsv(file7, col_names = FALSE)
+
+
+# Chart
+venn.plot <- venn.diagram(
+  x = list(unique(DNA_regions_transcriptomic$X4), unique(protein_regions_transcriptomic$X4)),
+  category.names = c("ORFs with unique DNA regions", "ORFs with unique protein regions"),
+  fill = c("skyblue", "lightpink"),
+  lty = "blank",
+  alpha = 0.5, 
+  filename = NULL,
+  # output=TRUE
+  cat.pos = c(-27, 27)
+)
+grid.newpage()
+grid::grid.draw(venn.plot)
+
+grid.text("Venn Diagram of DNA and Protein Transcriptomic Unique Regions", 
+          x = 0.5,            # Horizontal position (0 = left, 1 = right)
+          y = 0.98,           # Vertical position (0 = bottom, 1 = top)
+          gp = gpar(fontsize = 12, fontface = "bold"))  # Font settings
+```
+```{r}
+
+DNA_regions_genomic <- readr::read_tsv(file8, col_names = FALSE)
+protein_regions_genomic <- readr::read_tsv(file9, col_names = FALSE)
+
+protein_region_ORFs = str_split_fixed(protein_regions_genomic$X4, ':', 3)[,2]
+DNA_region_ORFs = str_split_fixed(DNA_regions_genomic$X4, ':', 3)[,2]
+
+# Chart
+venn.plot <- venn.diagram(
+  x = list(unique(DNA_region_ORFs), unique(protein_region_ORFs)),
+  category.names = c("ORFs with unique DNA regions", "ORFs with unique protein regions"),
+  fill = c("skyblue", "lightpink"),
+  lty = "blank",
+  alpha = 0.5, 
+  filename = NULL,
+  # output=TRUE
+  cat.pos = c(-27, 27)
+)
+grid.newpage()
+grid::grid.draw(venn.plot)
+
+grid.text("Venn Diagram of DNA and Protein Genomic Unique Regions", 
+          x = 0.5,            # Horizontal position (0 = left, 1 = right)
+          y = 0.98,           # Vertical position (0 = bottom, 1 = top)
+          gp = gpar(fontsize = 12, fontface = "bold"))  # Font settings
+```
+```{r}
+
+overlap_transcriptomic <- readr::read_tsv(file10, col_names = FALSE)
+overlap_transcriptomic$ur_length <- overlap_transcriptomic$X3 - overlap_transcriptomic$X2
+
+ggplot(overlap_transcriptomic, aes(x=ur_length)) + geom_histogram(bins = 100) +
+  labs(title="Distribution of overlapping transcriptomic unique regions DNA and Protein", x="Length of overlap of unique regions", y="Frequency")+
+  theme_minimal()+xlim(0,500)
+
+```
+```{r}
+
+overlap_genomic <- readr::read_tsv(file11, col_names = FALSE)
+overlap_genomic$ur_length <- overlap_genomic$X3 - overlap_genomic$X2
+overlap_genomic <- overlap_genomic %>% group_by(X4) %>%
+  summarize(ur_length = sum(ur_length))
+
+ggplot(overlap_genomic, aes(x=ur_length)) + geom_histogram(bins = 100) +
+  labs(title="Distribution of overlapping genomic unique regions DNA and Protein", x="Length of overlap of unique regions", y="Frequency")+
+  theme_minimal()+xlim(0,500)
+
+```
