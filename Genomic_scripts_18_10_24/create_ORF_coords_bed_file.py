@@ -4,7 +4,7 @@ create_ORF_coords_bed_file.py - create a bed file of all valid ORFs in transcrip
 
 This script takes hte UniqueProteinORFPairs.txt as input.
 Usage:
-    python create_ORF_coords_bed_file.py create_ORF_coords_bed_file.py ORF_transcript_coords.bed
+    python create_ORF_coords_bed_file.py UniqueProteinORFPairs.txt ORF_transcript_coords.bed
 """
 
 

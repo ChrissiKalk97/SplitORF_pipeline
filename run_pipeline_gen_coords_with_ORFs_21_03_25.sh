@@ -138,15 +138,15 @@ python ./SplitOrfs-master/OrfFinder_py3.py $transcripts > $output/OrfProteins.fa
 # ----- which are then annotated as the unique regions in another bedfile                                       ----- #
 echo "Align ORF-transcripts(Protein) to protein coding transcripts mummer -maxmatch -l 8"
 #proteins instead of proteins2: match against all protein coding transcripts and not only the longest ones!!!
-mummer -maxmatch -l 8 $proteins ./Output/run_$timestamp/OrfProteins.fa > ./Output/run_$timestamp/Proteins_maxmatch_l8.mums
+mummer -maxmatch -l 8 $proteins $output/OrfProteins.fa > $output/Proteins_maxmatch_l8.mums
 
 echo "Select the non matching regions as unique regions and save as bedfile"
 python ./Uniqueness_scripts/Find_Unique_Regions.py\
- ./Output/run_$timestamp/Proteins_maxmatch_l8.mums\
- ./Output/run_$timestamp/Protein_non_unique.bed\
- ./Output/run_$timestamp/OrfProteins.fa\
- ./Output/run_$timestamp/OrfProteins.bed\
- ./Output/run_$timestamp/Unique_Protein_Regions.bed
+ $output/Proteins_maxmatch_l8.mums\
+ $output/Protein_non_unique.bed\
+ $output/OrfProteins.fa\
+ $output/OrfProteins.bed\
+ $output/Unique_Protein_Regions.bed
 
 python ./Uniqueness_scripts/Filter_small_regions.py\
  $output/Unique_Protein_Regions.bed\
@@ -221,7 +221,7 @@ echo "Create Split-ORF report"
 ##need to remove . in front of the reltive path to the transcripts file, otherwise this file cannot be found when the path is put together
 transcripts_R="${transcripts:1}"
 echo "$transcripts_R"
-R -e "rmarkdown::render('Split-ORF_Report.Rmd',output_file='./Output/run_$timestamp/Split-ORF_Report.html',params=list(args = c('/Output/run_$timestamp/ValidProteinORFPairs_sortCol3.txt','/Output/run_$timestamp/UniqueProteinORFPairs_annotated.txt','$transcripts_R')))"
+R -e "rmarkdown::render('Split-ORF_Report.Rmd',output_file='$output/Split-ORF_Report.html',params=list(args = c('/Output/run_$timestamp/ValidProteinORFPairs_sortCol3.txt','/Output/run_$timestamp/UniqueProteinORFPairs_annotated.txt','$transcripts_R')))"
 
 
 # ----- extract the Valid ORF sequences from the given transcripts ----- #
@@ -229,91 +229,91 @@ echo 'Select Split-ORF DNA Sequences'
 #now look back at all ORFS, bc until now the unique regions were omitted
 #when valid (unique best match) -> take the whole ORF in the new file: Valid_ORF_Proteins.bed
 python ./Uniqueness_scripts/SelectValidOrfSequences.py\
- ./Output/run_$timestamp/UniqueProteinORFPairs.txt\
- ./Output/run_$timestamp/OrfProteins.bed\
- ./Output/run_$timestamp/Valid_ORF_Proteins.bed
+ $output/UniqueProteinORFPairs.txt\
+ $output/OrfProteins.bed\
+ $output/Valid_ORF_Proteins.bed
 
 # via transcript IDs: select the valid transcript DNA sequences by knowing valid IDs 
 python ./Uniqueness_scripts/Select_validORF_DNA_sequences.py\
- $transcripts ./Output/run_$timestamp/Valid_ORF_Proteins.bed\
- ./Output/run_$timestamp/ValidORF_DNA_Sequences.fa 
+ $transcripts $output/Valid_ORF_Proteins.bed\
+ $output/ValidORF_DNA_Sequences.fa 
 
 # ----- Determine Unique DNA regions by calling mummer maxmatch with a minimum length of 20, annotating the matches ----- #
 # ----- (non unique regions) in a bedfile and using bedtools subtract to get the non matching regions which are     ----- #
 # ----- then annotated as the unique regions in another bedfile                                                     ----- #
 # ----- 20 is the defualt parameter for -l matchlength                                                              ----- #
 echo "Align ORF-transcripts(DNA) to protein coding transcripts with mummer -maxmatch"
-mummer -maxmatch $proteinCodingTranscripts ./Output/run_$timestamp/ValidORF_DNA_Sequences.fa > ./Output/run_$timestamp/DNA_maxmatch.mums
+mummer -maxmatch $proteinCodingTranscripts $output/ValidORF_DNA_Sequences.fa > $output/DNA_maxmatch.mums
 
 echo "Select the non matching regions as unique regions and save as bedfile"
 python ./Uniqueness_scripts/Find_Unique_Regions.py\
- ./Output/run_$timestamp/DNA_maxmatch.mums\
- ./Output/run_$timestamp/DNA_non_unique.bed\
- ./Output/run_$timestamp/ValidORF_DNA_Sequences.fa\
- ./Output/run_$timestamp/ValidORF_DNA_Sequences.bed\
- ./Output/run_$timestamp/Unique_DNA_Regions.bed
+ $output/DNA_maxmatch.mums\
+ $output/DNA_non_unique.bed\
+ $output/ValidORF_DNA_Sequences.fa\
+ $output/ValidORF_DNA_Sequences.bed\
+ $output/Unique_DNA_Regions.bed
 
 # ----- Merge the bedfile entries if the start and end positions for the same transcript only differ by the length  ----- #
 # ----- parameter of MUMmer or less. For more details see Merge_Bedfile.py                                          ----- #
 python ./Uniqueness_scripts/Filter_small_regions.py\
- ./Output/run_$timestamp/Unique_DNA_Regions.bed\
+ $output/Unique_DNA_Regions.bed\
  20\
- ./Output/run_$timestamp/Unique_DNA_Regions_gt20.bed
+ $output/Unique_DNA_Regions_gt20.bed
 
 # ----- Extract the valid ORF-Proteins annotated in UniqueProteinORFPairs.txt                               ----- #
 echo "Extract only the valid regions"
 python ./Uniqueness_scripts/SelectValidOrfSequences.py\
- ./Output/run_$timestamp/UniqueProteinORFPairs.txt\
- ./Output/run_$timestamp/Unique_Protein_Regions_gt8.bed\
- ./Output/run_$timestamp/Unique_Protein_Regions_gt8_valid.bed
+ $output/UniqueProteinORFPairs.txt\
+ $output/Unique_Protein_Regions_gt8.bed\
+ $output/Unique_Protein_Regions_gt8_valid.bed
 
 # ----- Filter the protein and DNA unique regions for weird SplitORF positions
 python ./Uniqueness_scripts/filter_unique_regions.py\
- ./Output/run_$timestamp/UniqueProteinMatches.bed\
- ./Output/run_$timestamp/Unique_Protein_Regions_gt8_valid.bed\
+ $output/UniqueProteinMatches.bed\
+ $output/Unique_Protein_Regions_gt8_valid.bed\
  protein\
- ./Output/run_$timestamp
+ $output
 
 python ./Uniqueness_scripts/filter_unique_regions.py\
- ./Output/run_$timestamp/UniqueProteinMatches.bed\
- ./Output/run_$timestamp/Unique_DNA_Regions_gt20.bed\
+ $output/UniqueProteinMatches.bed\
+ $output/Unique_DNA_Regions_gt20.bed\
  DNA\
- ./Output/run_$timestamp
+ $output
 
 # ----- Use bedtools getfasta to extract the fasta sequences of the unique regions annotated in the produced bedfiles ----- #
 echo "Finishing Steps"
 bedtools getfasta\
- -fi ./Output/run_$timestamp/ValidORF_DNA_Sequences.fa\
- -fo ./Output/run_$timestamp/Unique_DNA_regions.fa\
- -bed ./Output/run_$timestamp/Unique_DNA_Regions_gt20_filtered.bed
+ -fi $output/ValidORF_DNA_Sequences.fa\
+ -fo $output/Unique_DNA_regions.fa\
+ -bed $output/Unique_DNA_Regions_gt20_filtered.bed
 
 bedtools getfasta\
- -fi ./Output/run_$timestamp/ORFProteins.fa\
- -fo ./Output/run_$timestamp/Unique_Protein_regions.fa\
- -bed ./Output/run_$timestamp/Unique_Protein_Regions_gt8_valid_filtered.bed
+ -fi $output/ORFProteins.fa\
+ -fo $output/Unique_Protein_regions.fa\
+ -bed $output/Unique_Protein_Regions_gt8_valid_filtered.bed
 
 # ----- get the ORF seqeunces of those predicted proteins with unique regions  ----- #
-python ./Uniqueness_scripts/get_protein_seqs_for_Masspec.py ./Output/run_$timestamp/Unique_Protein_regions.fa\
- ./Output/run_$timestamp/OrfProteins.fa\
- ./Output/run_$timestamp/Proteins_with_unique_regions_for_masspec.fa
+python ./Uniqueness_scripts/get_protein_seqs_for_Masspec.py $output/Unique_Protein_regions.fa\
+ $output/OrfProteins.fa\
+ $output/Proteins_with_unique_regions_for_masspec.fa
 
 # ----- Reorganize Unique_DNA_Regions_gt20.bed for later intersection with riboseq Alignment ----- #
 # Note: The position of the unique region is given with respect to the transcript and not the ORF!
 python ./Uniqueness_scripts/Bedreorganize_adapted.py \
-    ./Output/run_$timestamp/Unique_DNA_Regions_gt20_filtered.bed \
-    ./Output/run_$timestamp/Unique_DNA_Regions_for_riboseq.bed
+    $output/Unique_DNA_Regions_gt20_filtered.bed \
+    $output/Unique_DNA_Regions_for_riboseq.bed
 
 python ./Uniqueness_scripts/Bedreorganize_Proteins.py \
-    ./Output/run_$timestamp/Unique_Protein_Regions_gt8_valid_filtered.bed \
-    ./Output/run_$timestamp/Unique_Protein_Regions_transcript_coords.bed
+    $output/Unique_Protein_Regions_gt8_valid_filtered.bed \
+    $output/Unique_Protein_Regions_transcript_coords.bed
 
 
 exonPositionsSorted=$(basename $exonPositions .bed)_sorted.bed
-awk '$7 == "1"' $exonPositions | sort -k1,1 -k2,2 -k3,3n > ./Output/run_$timestamp/plus_strand.bed
-awk '$7 == "-1"' $exonPositions | sort -k1,1 -k2,2 -k4,4nr > ./Output/run_$timestamp/minus_strand.bed
-cat ./Output/run_$timestamp/plus_strand.bed ./Output/run_$timestamp/minus_strand.bed > ./Output/run_$timestamp/$exonPositionsSorted
-rm ./Output/run_$timestamp/plus_strand.bed
-rm ./Output/run_$timestamp/minus_strand.bed
+awk '$7 == "1"' $exonPositions | sort -k1,1 -k2,2 -k3,3n > $output/plus_strand.bed
+awk '$7 == "-1"' $exonPositions | sort -k1,1 -k2,2 -k4,4nr > $output/minus_strand.bed
+cat $output/plus_strand.bed $output/minus_strand.bed > $output/$exonPositionsSorted
+rm $output/plus_strand.bed
+rm $output/minus_strand.bed
 
 
 # ----- Get the genomic positions for the unique DNA and protein regions ----- #
@@ -321,71 +321,73 @@ echo "Change the Positions of the unique DNA and Protein as well as the ValidORF
 exonPositionsTranscriptPositions=$(basename $exonPositions .bed)_transcript_positions.bed
 echo "Change the positions to their genomic equivalent and transform into UCSC format"
 python ./Genomic_scripts_18_10_24/ExonToTranscriptPositions.py\
- ./Output/run_$timestamp/$exonPositionsSorted\
-  ./Output/run_$timestamp/$exonPositionsTranscriptPositions
+ $output/$exonPositionsSorted\
+  $output/$exonPositionsTranscriptPositions
 
 
 
 
 # ----- Test functionality of the exon coordinate conversion ----- #
-mkdir ./Output/run_$timestamp/tests
+mkdir $output/tests
 python ./Genomic_scripts_18_10_24/ExonToTranscriptPositions.py\
  ./Genomic_scripts_18_10_24/test/exon_transcript_positions_unit_test.bed\
-  ./Output/run_$timestamp/tests/exon_transcript_positions_results.bed
+  $output/tests/exon_transcript_positions_results.bed
 
 python ./Genomic_scripts_18_10_24/test/test_transcript_exon_positions.py\
- ./Output/run_$timestamp/tests/exon_transcript_positions_results.bed\
- ./Output/run_$timestamp/$exonPositionsSorted\
- ./Output/run_$timestamp/$exonPositionsTranscriptPositions
+ $output/tests/exon_transcript_positions_results.bed\
+ $output/$exonPositionsSorted\
+ $output/$exonPositionsTranscriptPositions
  
 
 
 #rm $exonPositionsSorted
 python ./Genomic_scripts_18_10_24/genomic_DNA_regions_polars.py\
- ./Output/run_$timestamp/Unique_DNA_Regions_for_riboseq.bed\
- ./Output/run_$timestamp/$exonPositionsTranscriptPositions\
- ./Output/run_$timestamp/Unique_DNA_regions_genomic.bed
+ $output/Unique_DNA_Regions_for_riboseq.bed\
+ $output/$exonPositionsTranscriptPositions\
+ $output/Unique_DNA_regions_genomic.bed
 
 python ./Genomic_scripts_18_10_24/genomic_DNA_regions_polars.py\
- ./Output/run_$timestamp/Unique_Protein_Regions_transcript_coords.bed\
- ./Output/run_$timestamp/$exonPositionsTranscriptPositions\
- ./Output/run_$timestamp/Unique_Protein_regions_genomic.bed
+ $output/Unique_Protein_Regions_transcript_coords.bed\
+ $output/$exonPositionsTranscriptPositions\
+ $output/Unique_Protein_regions_genomic.bed
 
 # ----- Get the genomic positions for all valid Split-ORFs ----- #
 python ./Genomic_scripts_18_10_24/create_ORF_coords_bed_file.py\
- ./Output/run_$timestamp/create_ORF_coords_bed_file.py\
-  ./Output/run_$timestamp/ORF_transcript_coords.bed
+ $output/UniqueProteinORFPairs.txt\
+  $output/ORF_transcript_coords.bed
+
 
 python ./Genomic_scripts_18_10_24/genomic_DNA_regions_polars.py\
- ./Output/run_$timestamp/ORF_transcript_coords.bed\
- ./Output/run_$timestamp/$exonPositionsTranscriptPositions\
- ./Output/run_$timestamp/ORF_genomic_coords.bed
+ $output/ORF_transcript_coords.bed\
+ $output/$exonPositionsTranscriptPositions\
+ $output/ORF_genomic_coords.bed
+
 
 # ----- Test functionality of unique region to genomic coordinate conversion ----- #
 python ./Genomic_scripts_18_10_24/test/test_transcriptomic_to_genomic_coordinates.py\
  ./Genomic_scripts_18_10_24/test/test_conversion_with_gen_trans.bed\
- ./Output/run_$timestamp/Unique_DNA_regions_genomic.bed
+ $output/Unique_DNA_regions_genomic.bed
 
 
 # ----- calculate overlap between unique DNA and protein regions genomic         ----- #
 echo "calculate genomic overlap between unique DNA and protein regions"
 bedtools intersect\
- -a ./Output/run_$timestamp/Unique_DNA_regions_genomic.bed\
- -b ./Output/run_$timestamp/Unique_Protein_regions_genomic.bed\
- > ./Output/run_$timestamp/Unique_Regions_Overlap_genomic.bed
+ -a $output/Unique_DNA_regions_genomic.bed\
+ -b $output/Unique_Protein_regions_genomic.bed\
+ > $output/Unique_Regions_Overlap_genomic.bed
 
 
 # ----- calculate overlap between unique DNA and protein regions transcriptomic         ----- #
 echo "calculate transcriptomic overlap between unique DNA and protein regions"
 bedtools intersect\
- -a ./Output/run_$timestamp/Unique_DNA_Regions_for_riboseq.bed\
- -b ./Output/run_$timestamp/Unique_Protein_Regions_transcript_coords.bed\
- > ./Output/run_$timestamp/Unique_Regions_Overlap_transcriptomic.bed
+ -a $output/Unique_DNA_Regions_for_riboseq.bed\
+ -b $output/Unique_Protein_Regions_transcript_coords.bed\
+ > $output/Unique_Regions_Overlap_transcriptomic.bed
 
 
 
 # ----- Create a report with basics statistics of the uniqueness scripts                       ----- #
-R -e "rmarkdown::render('Extended_Pipeline_new.Rmd',output_file='./Output/run_$timestamp/Uniqueness_Report.html',
+R -e "rmarkdown::render('Extended_Pipeline_new.Rmd',output_file='$output/Uniqueness_Report.html',
 params=list(args = c('/Output/run_$timestamp/Unique_DNA_Regions.fa', 
 '/Output/run_$timestamp/Unique_Protein_Regions.fa',
 '/Output/run_$timestamp/Unique_DNA_Regions_gt20_filtered.bed', 
