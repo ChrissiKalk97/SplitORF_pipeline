@@ -77,7 +77,7 @@ One or more of the arguments are directories.${NC}"
   exit 1
   
 # ----- check if every argument has the correct file extension ----- #
-elif ! [[ $1 =~ \.fa$ ]] || ! [[ $2 =~ \.fa$ ]] || ! [[ $3 =~ \.bed$ ]] || ! [[ $4 =~ \.fa$ ]] || ! [[ $5 =~ \.bed$ ]]; then
+elif ! [[ $1 =~ \.(fa|fasta)$ ]] || ! [[ $2 =~ \.(fa|fasta)$ ]] || ! [[ $3 =~ \.bed$ ]] || ! [[ $4 =~ \.(fa|fasta)$ ]] || ! [[ $5 =~ \.bed$ ]]; then
   echo -e "${RED}
 ERROR while executing the Pipeline!
 One or more of the arguments are not in the specified file format.${NC}"
