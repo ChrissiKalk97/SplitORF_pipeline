@@ -17,15 +17,14 @@ Arguments:
 
   transcripts.fa
       A multi-FASTA file containing the DNA sequences of the reads/transcripts
-      that shall be analyzed.
+      that shall be analyzed (input transcripts).
 
-  annotation.bed
+  PFAMannotation.bed
       A BED file containing the annotations for the used genome build.
-      The standard annotation files for human and mouse () can be
-      found in the 'annotations' directory within the 'SplitORF' directory.
+      These were downloaded from Ensembl and modified with a custom script.
 
   reference_transcripts.fa
-      A multi-FASTA file of all reference transcripts (should not contain the inout
+      A multi-FASTA file of all reference transcripts (should not contain the input
       transcripts).
 
   exonPositions.bed
@@ -35,6 +34,8 @@ Arguments:
         Gene stable ID	Transcript stable ID	Exon region start (bp)	
         Exon region end (bp)	Transcript start (bp)	Transcript end (bp)
         	Strand	Chromosome/scaffold name
+  alignmethod
+      blast or diamnond: diamond is faster while blast recovers more hits
 
 
 Options:
@@ -77,7 +78,7 @@ One or more of the arguments are directories.${NC}"
   exit 1
   
 # ----- check if every argument has the correct file extension ----- #
-elif ! [[ $1 =~ \.(fa|fasta)$ ]] || ! [[ $2 =~ \.(fa|fasta)$ ]] || ! [[ $3 =~ \.bed$ ]] || ! [[ $4 =~ \.(fa|fasta)$ ]] || ! [[ $5 =~ \.bed$ ]]; then
+elif ! [[ $1 =~ \.(fa|fasta)$ ]] || ! [[ $2 =~ \.(fa|fasta)$ ]] || ! [[ $3 =~ \.(txt|bed)$ ]] || ! [[ $4 =~ \.(fa|fasta)$ ]] || ! [[ $5 =~ \.(txt|bed)$ ]]; then
   echo -e "${RED}
 ERROR while executing the Pipeline!
 One or more of the arguments are not in the specified file format.${NC}"
@@ -157,8 +158,7 @@ echo "Select only the non-unique regions for the upcoming blast"
 bedtools subtract -a $output/OrfProteins.bed -b $output/Unique_Protein_Regions_gt8.bed > $output/ProteinRegionsforBlast.bed
 bedtools getfasta -fi $output/OrfProteins.fa -bed $output/ProteinRegionsforBlast.bed -fo $output/ProteinsforBlast.fa
 
-if [ "$align_method" == "blast" ]
-then
+if [[ "$align_method" == "blast" ]]; then
     # ----- create a blast database for all proteins using BLAST+ ----- #
     echo "Create BlastDB using the protein coding peptide fasta"
     makeblastdb -in $proteins -out $output/ProteinDatabase -dbtype prot
@@ -172,8 +172,7 @@ then
     # ----- sort the blastp output by the second column to group by proteins and delete unsorted file ----- #
     sort -k2 $output/OrfsAlign.txt > $output/OrfsAlign_sorted.txt
     rm $output/OrfsAlign.txt
-elif [ "$align_method" == "diamond" ]
-then
+elif [[ "$align_method" == "diamond" ]]; then
     #----- create a blast database for all proteins using BLAST+ ----- #
     echo "Create BlastDB using the protein coding peptide fasta"
     diamond makedb --in $proteins -d $output/ProteinDatabase
@@ -219,15 +218,24 @@ python ./SplitOrfs-master/addFunctionalOverlap_py3.py\
 echo "Create Split-ORF report"
 
 ##need to remove . in front of the reltive path to the transcripts file, otherwise this file cannot be found when the path is put together
-transcripts_R="${transcripts:1}"
-echo "$transcripts_R"
-R -e "rmarkdown::render('Split-ORF_Report.Rmd',output_file='$output/Split-ORF_Report.html',params=list(args = c('/Output/run_$timestamp/ValidProteinORFPairs_sortCol3.txt','/Output/run_$timestamp/UniqueProteinORFPairs_annotated.txt','$transcripts_R')))"
+if [[ $transcripts == ./* ]]; then
+  transcripts_R="${transcripts:1}"
+else
+  transcripts_R="${transcripts}"
+fi
+
+
+R -e "rmarkdown::render('Split-ORF_Report.Rmd',
+output_file='$output/Split-ORF_Report.html',
+params=list(args = c('/Output/run_$timestamp/ValidProteinORFPairs_sortCol3.txt',
+'/Output/run_$timestamp/UniqueProteinORFPairs_annotated.txt',
+'$transcripts_R')))"
 
 
 # ----- extract the Valid ORF sequences from the given transcripts ----- #
 echo 'Select Split-ORF DNA Sequences'
-#now look back at all ORFS, bc until now the unique regions were omitted
-#when valid (unique best match) -> take the whole ORF in the new file: Valid_ORF_Proteins.bed
+# now look back at all ORFS, bc until now the unique regions were omitted
+# when valid (unique best match) -> take the whole ORF in the new file: Valid_ORF_Proteins.bed
 python ./Uniqueness_scripts/SelectValidOrfSequences.py\
  $output/UniqueProteinORFPairs.txt\
  $output/OrfProteins.bed\
@@ -293,9 +301,10 @@ bedtools getfasta\
  -bed $output/Unique_Protein_Regions_gt8_valid_filtered.bed
 
 # ----- get the ORF seqeunces of those predicted proteins with unique regions  ----- #
-python ./Uniqueness_scripts/get_protein_seqs_for_Masspec.py $output/Unique_Protein_regions.fa\
+python ./Uniqueness_scripts/get_protein_seqs_for_Masspec.py\
+ $output/UniqueProteinORFPairs.txt\
  $output/OrfProteins.fa\
- $output/Proteins_with_unique_regions_for_masspec.fa
+ $output/Proteins_for_masspec.fa
 
 # ----- Reorganize Unique_DNA_Regions_gt20.bed for later intersection with riboseq Alignment ----- #
 # Note: The position of the unique region is given with respect to the transcript and not the ORF!
@@ -309,8 +318,8 @@ python ./Uniqueness_scripts/Bedreorganize_Proteins.py \
 
 
 exonPositionsSorted=$(basename $exonPositions .bed)_sorted.bed
-awk '$7 == "1"' $exonPositions | sort -k1,1 -k2,2 -k3,3n > $output/plus_strand.bed
-awk '$7 == "-1"' $exonPositions | sort -k1,1 -k2,2 -k4,4nr > $output/minus_strand.bed
+awk '$7 == "1" || $7 == "+"' $exonPositions | sort -k1,1 -k2,2 -k3,3n > $output/plus_strand.bed
+awk '$7 == "-1" || $7 == "-"' $exonPositions | sort -k1,1 -k2,2 -k4,4nr > $output/minus_strand.bed
 cat $output/plus_strand.bed $output/minus_strand.bed > $output/$exonPositionsSorted
 rm $output/plus_strand.bed
 rm $output/minus_strand.bed
@@ -399,6 +408,13 @@ params=list(args = c('/Output/run_$timestamp/Unique_DNA_Regions.fa',
 '/Output/run_$timestamp/Unique_Protein_regions_genomic.bed',
 '/Output/run_$timestamp/Unique_Regions_Overlap_transcriptomic.bed',
 '/Output/run_$timestamp/Unique_Regions_Overlap_genomic.bed')))"
+
+
+
+# ----- get Split-ORF genes for GO analysis       ----- #
+python ./SplitOrfs-master/get_so_genes_for_go_analysis.py \
+ $output/UniqueProteinORFPairs.txt \
+ $output/SplitOrfGeneFile.txt 
 
 
 

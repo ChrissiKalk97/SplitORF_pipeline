@@ -94,12 +94,12 @@ dna_lengths <- data.frame(dna_ur_len = unlist(lengthlist))
 #hist(lengthlist,breaks=100,col="blue",main="Length distribution of unique regions",xlab="Length of unique region")
 ggplot(dna_lengths, aes(x=dna_ur_len)) + geom_histogram(bins=100) +
   labs(title="Length distribution of DNA unique regions", x="Length of DNA unique region", y="Frequency")+
-  theme_minimal()
+  theme(panel.background = element_blank())
 ```
 ```{r, echo=FALSE}
 ggplot(dna_lengths, aes(x=dna_ur_len)) + geom_histogram(bins = 100) +
   labs(title="Length distribution of DNA unique regions - zoom", x="Length of DNA unique region", y="Frequency")+
-  theme_minimal()+ xlim(0, 500)
+  theme(panel.background = element_blank())+ xlim(0, 500)
 ```
 
 
@@ -111,7 +111,7 @@ ggplot(dna_lengths, aes(x=dna_ur_len)) + geom_histogram(bins = 100) +
 DNA_un_trans <- data.frame(dna_per_trans = DNA_Unique_per_transcript)
 ggplot(DNA_un_trans, aes(x=dna_per_trans)) + geom_histogram(bins = 100) +
   labs(title="Number of unique DNA regions per transcript", x="Number of unique DNA regions", y="Frequency")+
-  theme_minimal()
+  theme(panel.background = element_blank())
 #hist(DNA_Unique_per_transcript,breaks=100,col="blue",main="Unique DNA regions per transcript",xlab="number of unique regions")
 ```
 ### Position of unique DNA regions within transcripts
@@ -162,17 +162,19 @@ df_ORF_info_and_unique$unique_end_percent <- df_ORF_info_and_unique$unique_end/(
 ```{r, echo=FALSE}
 ggplot(df_ORF_info_and_unique, aes(x = unique_start_percent, fill = factor(orf_number))) +
   geom_histogram() +
-    scale_fill_hue(l=45)+
+  scale_fill_hue(l=45) +
+  scale_fill_manual(values = c('#75C1C5', '#CC79A7', '#FFC500')) +
   labs(title= "Start positions of unique regions inside of ORFs in %, by ORF position", x = "Start positions of unique regions inside of ORFs in %", y = "Frequency", fill = "unique region position in ORF") +
-  theme_minimal()
+  theme(panel.background = element_blank())
 ```
 
 ```{r, echo=FALSE}
 ggplot(df_ORF_info_and_unique, aes(x = unique_end_percent, fill = factor(orf_number))) +
   geom_histogram() +
-    scale_fill_hue(l=45)+
+  scale_fill_hue(l=45) +
+  scale_fill_manual(values = c('#75C1C5', '#CC79A7', '#FFC500')) +
   labs(title= "End positions of unique regions inside of ORFs in %, by ORF position", x = "End positions of unique regions inside of ORFs in %", y = "Frequency", fill = "unique region position in ORF") +
-  theme_minimal()
+  theme(panel.background = element_blank())
 ```
 
 
@@ -218,14 +220,14 @@ Protein_Unique_per_transcript=as.vector(table(Protein_ids))
 prot_lengths <- data.frame(prot_ur_len = unlist(protlengthlist))
 ggplot(prot_lengths, aes(x=prot_ur_len)) + geom_histogram(bins=100) +
   labs(title="Length distribution of protein unique regions", x="Length of protein unique region", y="Frequency")+
-  theme_minimal()
+  theme(panel.background = element_blank())
 #hist(protlengthlist,breaks=100,col="blue",main="Length distribution of unique regions",xlab="Length of unique region")
 ```
 
 ```{r, echo=FALSE}
 ggplot(prot_lengths, aes(x=prot_ur_len)) + geom_histogram(bins = 100) +
   labs(title="Length distribution of potein unique regions - zoom", x="Length of protein unique region", y="Frequency")+
-  theme_minimal()+ xlim(0, 175)
+  theme(panel.background = element_blank())+ xlim(0, 175)
 ```
 
 
@@ -235,7 +237,7 @@ ggplot(prot_lengths, aes(x=prot_ur_len)) + geom_histogram(bins = 100) +
 prot_un_trans <- data.frame(prot_per_trans = Protein_Unique_per_transcript)
 ggplot(prot_un_trans, aes(x=prot_per_trans)) + geom_histogram(bins = 100) +
   labs(title="Number of unique protein regions per transcript", x="Number of unique protein regions", y="Frequency")+
-  theme_minimal()
+  theme(panel.background = element_blank())
 
 #hist(Protein_Unique_per_transcript,breaks=100,col="blue",main="Unique Protein regions per transcript",xlab="number of unique regions")
 ```
@@ -273,17 +275,19 @@ df_ORF_info_and_unique_protein$unique_end_percent <- df_ORF_info_and_unique_prot
 ```{r, echo=FALSE}
 ggplot(df_ORF_info_and_unique_protein, aes(x = unique_start_percent, fill = factor(orf_number))) +
   geom_histogram() +
-    scale_fill_hue(l=45)+
+  scale_fill_hue(l=45) +
+  scale_fill_manual(values = c('#75C1C5', '#CC79A7', '#FFC500')) +
   labs(title= "Start positions of unique protein regions inside of ORFs in %, by ORF position", x = "Start positions of unique protein regions inside of ORFs in %", y = "Frequency", fill = "unique protein region position in ORF") +
-  theme_minimal()
+  theme(panel.background = element_blank())
 ```
 
 ```{r, echo=FALSE}
 ggplot(df_ORF_info_and_unique_protein, aes(x = unique_end_percent, fill = factor(orf_number))) +
   geom_histogram() +
-    scale_fill_hue(l=45)+
+  scale_fill_hue(l=45) +
+  scale_fill_manual(values = c('#75C1C5', '#CC79A7', '#FFC500')) +
   labs(title= "End positions of unique protein regions inside of ORFs in %, by ORF position", x = "End positions of unique protein regions inside of ORFs in %", y = "Frequency", fill = "unique protein region position in ORF") +
-  theme_minimal()
+  theme(panel.background = element_blank())
 ```
 
 
@@ -320,7 +324,7 @@ protein_regions_transcriptomic <- readr::read_tsv(file7, col_names = FALSE)
 venn.plot <- venn.diagram(
   x = list(unique(DNA_regions_transcriptomic$X4), unique(protein_regions_transcriptomic$X4)),
   category.names = c("ORFs with unique DNA regions", "ORFs with unique protein regions"),
-  fill = c("skyblue", "lightpink"),
+  fill = c("#75C1C5", "#CC79A7"),
   lty = "blank",
   alpha = 0.5, 
   filename = NULL,
@@ -347,7 +351,7 @@ DNA_region_ORFs = str_split_fixed(DNA_regions_genomic$X4, ':', 3)[,2]
 venn.plot <- venn.diagram(
   x = list(unique(DNA_region_ORFs), unique(protein_region_ORFs)),
   category.names = c("ORFs with unique DNA regions", "ORFs with unique protein regions"),
-  fill = c("skyblue", "lightpink"),
+  fill = c("#75C1C5", "#CC79A7"),
   lty = "blank",
   alpha = 0.5, 
   filename = NULL,
@@ -369,7 +373,7 @@ overlap_transcriptomic$ur_length <- overlap_transcriptomic$X3 - overlap_transcri
 
 ggplot(overlap_transcriptomic, aes(x=ur_length)) + geom_histogram(bins = 100) +
   labs(title="Distribution of overlapping transcriptomic unique regions DNA and Protein", x="Length of overlap of unique regions", y="Frequency")+
-  theme_minimal()+xlim(0,500)
+  theme(panel.background = element_blank())+xlim(0,500)
 
 ```
 ```{r}
@@ -381,6 +385,6 @@ overlap_genomic <- overlap_genomic %>% group_by(X4) %>%
 
 ggplot(overlap_genomic, aes(x=ur_length)) + geom_histogram(bins = 100) +
   labs(title="Distribution of overlapping genomic unique regions DNA and Protein", x="Length of overlap of unique regions", y="Frequency")+
-  theme_minimal()+xlim(0,500)
+  theme(panel.background = element_blank())+xlim(0,500)
 
 ```

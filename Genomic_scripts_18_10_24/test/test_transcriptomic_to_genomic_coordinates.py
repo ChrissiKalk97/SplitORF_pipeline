@@ -32,6 +32,6 @@ genomic_pos_subset = genomic_pos_subset.reset_index(drop=True)
 transcript_coords_test = transcript_coords_test.reset_index(drop=True)
 
 genomic_pos_subset = genomic_pos_subset.astype(transcript_coords_test.dtypes)
-print(genomic_pos_subset)
-print(transcript_coords_test)
+# print(genomic_pos_subset)
+# print(transcript_coords_test)
 assert genomic_pos_subset.equals(transcript_coords_test)

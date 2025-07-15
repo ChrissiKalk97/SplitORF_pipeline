@@ -18,6 +18,8 @@ def unique_coordinate_in_exon(coordinate: int, regions: pl.DataFrame, end=False)
     if not filtered.is_empty():
         # this returns the head of the df, and the number indicates how many lines are returned
         return filtered.head(1)
+    else:
+        print(regions["end_trans"], coordinate)
 
 
 def unique_trans_coords_to_genomic(exon_trans_coords_one_region, one_region, f):
@@ -37,7 +39,7 @@ def unique_trans_coords_to_genomic(exon_trans_coords_one_region, one_region, f):
     start_index = int(start_exon[0])
     end_index = int(end_exon[0])
 
-    strand = int(start_exon[6])
+    strand = start_exon[6]
     chromosome = start_exon[7]
 
     start_exon_gen_start = int(start_exon[2])
@@ -46,7 +48,7 @@ def unique_trans_coords_to_genomic(exon_trans_coords_one_region, one_region, f):
     end_exon_gen_start = int(end_exon[2])
 
     if start_exon_gen_start != end_exon_gen_start:
-        if strand == 1:
+        if strand == '1' or strand == '+':
             strand = '+'
             genomic_start = start_exon_gen_start + start_unique - start_exon_trans_start
             genomic_end = start_exon_gen_end
@@ -74,7 +76,7 @@ def unique_trans_coords_to_genomic(exon_trans_coords_one_region, one_region, f):
             genomic_end = genomic_start + end_unique - current_exon_trans_start
             f.write(chromosome + '\t' + str(genomic_start) + '\t' + str(genomic_end) +
                     '\t' + ID_with_ORF + '\t' + str(0) + '\t' + str(strand) + '\n')
-        elif strand == -1:
+        elif strand == '-1' or strand == '-':
             strand = '-'
             genomic_start = start_exon_gen_start
             genomic_end = start_exon_gen_end - \
@@ -105,13 +107,13 @@ def unique_trans_coords_to_genomic(exon_trans_coords_one_region, one_region, f):
                     '\t' + ID_with_ORF + '\t' + str(0) + '\t' + str(strand) + '\n')
 
     else:
-        if strand == 1:
+        if strand == '1' or strand == '+':
             strand = '+'
             genomic_start = start_exon_gen_start + start_unique - start_exon_trans_start
             genomic_end = start_exon_gen_start + end_unique - start_exon_trans_start
             f.write(chromosome + '\t' + str(genomic_start) + '\t' + str(genomic_end) +
                     '\t' + ID_with_ORF + '\t' + str(0) + '\t' + str(strand) + '\n')
-        elif strand == -1:
+        elif strand == '-1' or strand == '-':
             strand = '-'
             genomic_start = start_exon_gen_end - \
                 (start_unique - start_exon_trans_start)

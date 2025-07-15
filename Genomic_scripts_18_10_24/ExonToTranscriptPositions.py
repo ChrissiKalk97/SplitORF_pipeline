@@ -14,7 +14,7 @@ with open(sys.argv[2], 'w') as f:
         exon_end_coord = int(exon_info[3])
         whole_transcript_start_coordinate = int(exon_info[4]) - 1
         whole_transcript_end_coordinate = int(exon_info[5])
-        if strand == '1':
+        if strand == '1' or strand == '+':
             if tid != previous_tid:
                 assert (exon_start_coord == whole_transcript_start_coordinate)
                 transcript_start_coordinate = 0
@@ -29,7 +29,7 @@ with open(sys.argv[2], 'w') as f:
                 transcript_start_coordinate = previous_end_coordinate
                 transcript_end_coordinate = previous_end_coordinate + \
                     exon_end_coord - exon_start_coord
-        elif strand == '-1':
+        elif strand == '-1' or strand == '-':
             if tid != previous_tid:
                 assert (exon_end_coord == whole_transcript_end_coordinate)
                 transcript_start_coordinate = 0
