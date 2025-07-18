@@ -30,7 +30,7 @@ def parse_arguments():
 def main(go_terms, out_plot):
     go_terms_df = pd.read_csv(go_terms, sep=',', header=0)
     go_terms_df = go_terms_df.sort_values(
-        by='negative_log10_of_adjusted_p_value', ascending=True)
+        by='negative_log10_of_adjusted_p_value', ascending=False)
     g = sbn.catplot(data=go_terms_df, x="negative_log10_of_adjusted_p_value",
                     y="term_name", kind="bar", palette="viridis", height=6, aspect=1.5)
     g.set_axis_labels("−log₁₀(adjusted p-value)", "GO Term")

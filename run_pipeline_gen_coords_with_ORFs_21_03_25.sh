@@ -398,7 +398,7 @@ bedtools intersect\
 # ----- Create a report with basics statistics of the uniqueness scripts                       ----- #
 R -e "rmarkdown::render('Extended_Pipeline_new.Rmd',output_file='$output/Uniqueness_Report.html',
 params=list(args = c('/Output/run_$timestamp/Unique_DNA_Regions.fa', 
-'/Output/run_$timestamp/Unique_Protein_Regions.fa',
+'/Output/run_$timestamp/Unique_Protein_regions.fa',
 '/Output/run_$timestamp/Unique_DNA_Regions_gt20_filtered.bed', 
 '/Output/run_$timestamp/Unique_Protein_Regions_gt8_valid_filtered.bed',
 '/Output/run_$timestamp/UniqueProteinORFPairs.txt',

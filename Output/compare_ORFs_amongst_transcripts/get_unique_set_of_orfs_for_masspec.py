@@ -47,7 +47,8 @@ def main(fasta1, fasta2, outname, fasta3='', fasta4=''):
         if fasta:
             sample_counter = 0
             for record in SeqIO.parse(fasta, "fasta"):
-                dedup_orfs[str(record.seq)].append(record.id)
+                dedup_orfs[str(record.seq)].append(
+                    '|'.join(record.id.split('|')[1:3]))
                 sample_counter += 1
                 if len(dedup_orfs[str(record.seq)]) > 1:
                     dup_counter += 1
@@ -55,8 +56,8 @@ def main(fasta1, fasta2, outname, fasta3='', fasta4=''):
             print('sample counter', sample_counter)
     print("dup_counter", dup_counter)
     print('total counter', total_counter)
-    orfs_list = [SeqRecord(Seq(seqi), id="|".join(
-        gi), name='', description='') for seqi, gi in dedup_orfs.items()]
+    orfs_list = [SeqRecord(Seq(seqi), id="sp" + "|" + gi[0],
+                           name='', description='') for seqi, gi in dedup_orfs.items()]
 
     SeqIO.write(orfs_list, outname, 'fasta')
 
