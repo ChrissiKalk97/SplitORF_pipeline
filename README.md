@@ -52,3 +52,14 @@ PFAM_annotation.bed \
 Reference_protein_coding_transcript_sequences.fa \
 Exon_coordinates.bed \
 blast
+```
+
+## Output
+A folder called Output will be created in the directory of the bash pipeline script. For each run of the pipeline a new subfolder in the
+Output folder will be created whose name contains a time stamp of the run. All of the files and reports created during the run of the Split-ORFs
+pipeline will be placed in that folder.
+
+This will have the following structure:
+Output/
+├── run_time_stamp/
+
