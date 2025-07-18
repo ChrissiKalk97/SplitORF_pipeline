@@ -18,6 +18,31 @@ other annotated protein coding transcript.
   	Transcript end (bp),	Strand,	Chromosome/scaffold name, TSV)
 - Alignment algorithm (blast or diamond)
 
+
+### How to get Input files
+All of the Input files can be downloaded directly from Ensembl Biomart.
+
+1) Download cDNA and amino acid protein coding sequences sequences:
+Filters: Genes -> Transcript Type -> protein_coding
+Attributes: Sequences -> select cDNA sequences or peptide
+Header information: gene stable ID, transcript stable ID
+
+
+2) download transcripts for SO prediction, here with nonsense mediated decay transcripts:
+Filters: Genes -> Transcript type -> nonsense_mediated_decay
+Attributes: Sequences -> select cDNA sequences
+Header information: gene stable ID, transcript stable ID
+
+3) download PFAM annotation in tsv format:
+Attributes: Features -> Transcripts stable ID, PFAM start, PFAM end, PFAM ID
+Protein Domains and Families: Pfam ID
+
+4) Exon coordinates:
+Attributes: Structures -> Gene stable ID, Transcript stable ID, Exon region start (bp),	Exon region end (bp),	Transcript start (bp),
+  	Transcript end (bp), Strand, Chromosome/scaffold name
+
+
+
 ## Run pipeline
 ```bash
 bash run_pipeline_gen_coords_with_ORFs_21_03_25.sh \
