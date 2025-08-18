@@ -49,12 +49,12 @@ Attributes: Sequences -> select cDNA sequences or peptide
 Header information: gene stable ID, transcript stable ID
 
 
-2) download transcripts for SO prediction, here with nonsense mediated decay transcripts:
+2) Download transcripts for SO prediction, here with nonsense mediated decay transcripts:
 Filters: Genes -> Transcript type -> nonsense_mediated_decay
 Attributes: Sequences -> select cDNA sequences
 Header information: gene stable ID, transcript stable ID
 
-3) download PFAM annotation in tsv format:
+3) Download PFAM annotation in tsv format:
 Attributes: Features -> Transcripts stable ID, PFAM start, PFAM end, PFAM ID
 Protein Domains and Families: Pfam ID
 
@@ -67,7 +67,7 @@ Attributes: Structures -> Gene stable ID, Transcript stable ID, Exon region star
 ## Run pipeline
 ```bash
 bash run_splitorfs_pipeline.sh \
-Reference_protein_sequences .fa \
+Reference_protein_sequences.fa \
 Transcripts_sequences_for_Split-ORF_prediction.fa \
 PFAM_annotation.bed \
 Reference_protein_coding_transcript_sequences.fa \
