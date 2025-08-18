@@ -4,7 +4,7 @@ Split Open Reading frames (Split-ORFs) exist on transcripts that encode two or m
 These multiple open reading frames each encode a part of a full length protein, splitting it into pieces. 
 
 The Split-ORF pipeline predicts possible Split-ORF transcripts in a user defined set of transcript sequences.
-Additionally, with DNA and protein unique regions are predicted for the Split-ORFs. These regions do not occur in any
+Additionally, DNA and protein unique regions are predicted for the Split-ORFs. These regions do not occur in any
 other annotated protein coding transcript. 
 
 ## Dependencies
@@ -27,6 +27,11 @@ This environment can be installed by running:
 ```bash
 conda env create -f splitorf_dependencies.yml -n splitorf
 ```
+
+The Split-ORF pipeline relies on either diamond or BLAST, which is a choice of the user. Diamond is installed in the conda splitorf environment, BLAST requires a local installation which can be downloaded [here](https://blast.ncbi.nlm.nih.gov/Blast.cgi). The path to the BLAST executable (/usr/local/ncbi/blast/bin) needs to be added to the PATH variable.
+
+MUMmer (version 3.23). Needed for exact matching of the predicted ORF sequences against the reference files. This version can be downloaded [here](https://mummer.sourceforge.net).
+
 
 ## Input Files
 
