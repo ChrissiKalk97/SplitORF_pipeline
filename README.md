@@ -81,6 +81,8 @@ Output folder will be created whose name contains a time stamp of the run. All o
 pipeline will be placed in that folder.
 
 This will have the following structure:
+```
 Output/
 ├── run_time_stamp/
+```
 
