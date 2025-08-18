@@ -9,18 +9,18 @@ other annotated protein coding transcript.
 
 ## Dependencies
 For the html reports of the Split-ORF pipeline, R and the following packages are required:
-seqinr
-ggplot2
-geomtextpath
-tidyr
-stringr
-dplyr
-VennDiagram
-RColorBrewer
-readr
-grid
-knitr
-rmarkdown
+- seqinr  
+- ggplot2  
+- geomtextpath  
+- tidyr  
+- stringr  
+- dplyr  
+- VennDiagram  
+- RColorBrewer  
+- readr  
+- grid  
+- knitr  
+- rmarkdown  
 
 A conda environment with the name splitorf is required as well.
 This environment can be installed by running:
