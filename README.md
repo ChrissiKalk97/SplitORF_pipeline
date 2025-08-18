@@ -7,6 +7,27 @@ The Split-ORF pipeline predicts possible Split-ORF transcripts in a user defined
 Additionally, with DNA and protein unique regions are predicted for the Split-ORFs. These regions do not occur in any
 other annotated protein coding transcript. 
 
+## Dependencies
+For the html reports of the Split-ORF pipeline, R and the following packages are required:
+seqinr
+ggplot2
+geomtextpath
+tidyr
+stringr
+dplyr
+VennDiagram
+RColorBrewer
+readr
+grid
+knitr
+rmarkdown
+
+A conda environment with the name splitorf is required as well.
+This environment can be installed by running:
+```bash
+conda env create -f splitorf_dependencies.yml -n splitorf
+```
+
 ## Input Files
 
 - Transcripts sequences for Split-ORF prediction (FASTA)
@@ -45,7 +66,7 @@ Attributes: Structures -> Gene stable ID, Transcript stable ID, Exon region star
 
 ## Run pipeline
 ```bash
-bash run_pipeline_gen_coords_with_ORFs_21_03_25.sh \
+bash run_splitorfs_pipeline.sh \
 Reference_protein_sequences .fa \
 Transcripts_sequences_for_Split-ORF_prediction.fa \
 PFAM_annotation.bed \
