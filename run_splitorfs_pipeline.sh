@@ -292,12 +292,12 @@ python ./Uniqueness_scripts/filter_unique_regions.py\
 echo "Finishing Steps"
 bedtools getfasta\
  -fi $output/ValidORF_DNA_Sequences.fa\
- -fo $output/Unique_DNA_regions.fa\
+ -fo $output/Unique_DNA_Regions.fa\
  -bed $output/Unique_DNA_Regions_gt20_filtered.bed
 
 bedtools getfasta\
  -fi $output/ORFProteins.fa\
- -fo $output/Unique_Protein_regions.fa\
+ -fo $output/Unique_Protein_Regions.fa\
  -bed $output/Unique_Protein_Regions_gt8_valid_filtered.bed
 
 # ----- get the ORF seqeunces of those predicted proteins with unique regions  ----- #
@@ -353,12 +353,12 @@ python ./Genomic_scripts_18_10_24/test/test_transcript_exon_positions.py\
 python ./Genomic_scripts_18_10_24/genomic_DNA_regions_polars.py\
  $output/Unique_DNA_Regions_for_riboseq.bed\
  $output/$exonPositionsTranscriptPositions\
- $output/Unique_DNA_regions_genomic.bed
+ $output/Unique_DNA_Regions_genomic.bed
 
 python ./Genomic_scripts_18_10_24/genomic_DNA_regions_polars.py\
  $output/Unique_Protein_Regions_transcript_coords.bed\
  $output/$exonPositionsTranscriptPositions\
- $output/Unique_Protein_regions_genomic.bed
+ $output/Unique_Protein_Regions_genomic.bed
 
 # ----- Get the genomic positions for all valid Split-ORFs ----- #
 python ./Genomic_scripts_18_10_24/create_ORF_coords_bed_file.py\
@@ -375,14 +375,14 @@ python ./Genomic_scripts_18_10_24/genomic_DNA_regions_polars.py\
 # ----- Test functionality of unique region to genomic coordinate conversion ----- #
 python ./Genomic_scripts_18_10_24/test/test_transcriptomic_to_genomic_coordinates.py\
  ./Genomic_scripts_18_10_24/test/test_conversion_with_gen_trans.bed\
- $output/Unique_DNA_regions_genomic.bed
+ $output/Unique_DNA_Regions_genomic.bed
 
 
 # ----- calculate overlap between unique DNA and protein regions genomic         ----- #
 echo "calculate genomic overlap between unique DNA and protein regions"
 bedtools intersect\
- -a $output/Unique_DNA_regions_genomic.bed\
- -b $output/Unique_Protein_regions_genomic.bed\
+ -a $output/Unique_DNA_Regions_genomic.bed\
+ -b $output/Unique_Protein_Regions_genomic.bed\
  > $output/Unique_Regions_Overlap_genomic.bed
 
 
@@ -398,14 +398,14 @@ bedtools intersect\
 # ----- Create a report with basics statistics of the uniqueness scripts                       ----- #
 R -e "rmarkdown::render('Extended_Pipeline_new.Rmd',output_file='$output/Uniqueness_Report.html',
 params=list(args = c('/Output/run_$timestamp/Unique_DNA_Regions.fa', 
-'/Output/run_$timestamp/Unique_Protein_regions.fa',
+'/Output/run_$timestamp/Unique_Protein_Regions.fa',
 '/Output/run_$timestamp/Unique_DNA_Regions_gt20_filtered.bed', 
 '/Output/run_$timestamp/Unique_Protein_Regions_gt8_valid_filtered.bed',
 '/Output/run_$timestamp/UniqueProteinORFPairs.txt',
 '/Output/run_$timestamp/Unique_DNA_Regions_for_riboseq.bed',
 '/Output/run_$timestamp/Unique_Protein_Regions_transcript_coords.bed',
 '/Output/run_$timestamp/Unique_DNA_regions_genomic.bed',
-'/Output/run_$timestamp/Unique_Protein_regions_genomic.bed',
+'/Output/run_$timestamp/Unique_Protein_Regions_genomic.bed',
 '/Output/run_$timestamp/Unique_Regions_Overlap_transcriptomic.bed',
 '/Output/run_$timestamp/Unique_Regions_Overlap_genomic.bed')))"
 
