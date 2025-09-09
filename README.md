@@ -25,12 +25,12 @@ For the html reports of the Split-ORF pipeline, R and the following packages are
 A conda environment with the name splitorf is required as well.
 This environment can be installed by running:
 ```bash
-conda env create -f splitorf_dependencies.yml -n splitorf
+conda env create -f conda-lock.yml -n splitorf
 ```
 
 The Split-ORF pipeline relies on either diamond or BLAST, which is a choice of the user. Diamond is installed in the conda splitorf environment, BLAST requires a local installation which can be downloaded [here](https://blast.ncbi.nlm.nih.gov/Blast.cgi). The path to the BLAST executable (/usr/local/ncbi/blast/bin) needs to be added to the PATH variable.
 
-MUMmer (version 3.23). Needed for exact matching of the predicted ORF sequences against the reference files. This version can be downloaded [here](https://mummer.sourceforge.net).
+MUMmer (version 3.23). Needed for exact matching of the predicted ORF sequences against the reference files. This version can be downloaded [here](https://mummer.sourceforge.net), or installed via conda.
 
 
 ## Input Files
