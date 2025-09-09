@@ -12,16 +12,41 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 
 ```{r imports, include = FALSE}
-library(seqinr)
-library(ggplot2)
-library(geomtextpath)
-library(tidyr)
-library(stringr)
-library(dplyr)
-library(VennDiagram)
-library(RColorBrewer)
-library(readr)
-library(grid)
+# Function to install and load packages
+install_and_load <- function(pkg){
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    install.packages(pkg, dependencies = TRUE)
+  }
+  library(pkg, character.only = TRUE)
+}
+
+packages <- c(
+  "seqinr",
+  "ggplot2",
+  "geomtextpath",
+  "tidyr",
+  "stringr",
+  "dplyr",
+  "VennDiagram",
+  "RColorBrewer",
+  "readr",
+  "grid"   # NOTE: 'grid' is part of base R; install step is skipped
+)
+
+# Install & load all
+invisible(lapply(packages, install_and_load))
+
+
+# library(seqinr)
+# library(ggplot2)
+# library(geomtextpath)
+# library(tidyr)
+# library(stringr)
+# library(dplyr)
+# library(VennDiagram)
+# library(RColorBrewer)
+# library(readr)
+# library(grid)
 ```
 
 
