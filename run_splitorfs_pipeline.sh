@@ -296,7 +296,7 @@ bedtools getfasta\
  -bed $output/Unique_DNA_Regions_gt20_filtered.bed
 
 bedtools getfasta\
- -fi $output/ORFProteins.fa\
+ -fi $output/OrfProteins.fa\
  -fo $output/Unique_Protein_Regions.fa\
  -bed $output/Unique_Protein_Regions_gt8_valid_filtered.bed
 
