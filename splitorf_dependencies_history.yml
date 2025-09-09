@@ -1,0 +1,22 @@
+name: SplitORF
+channels:
+  - bcbio
+  - bioconda
+  - conda-forge
+dependencies:
+  - blast
+  - samtools
+  - ca-certificates
+  - openssl
+  - bedtools
+  - mummer
+  - python=3.10
+  - biopython
+  - pybedtools
+  - diamond
+  - matplotlib
+  - seaborn
+  - certifi
+  - ipykernel
+  - bioconda::gffread
+prefix: /Users/christina/miniforge3/envs/SplitORF
