@@ -37,6 +37,10 @@ transcript_coords_full = pd.read_csv(
 exon_coords = pd.read_csv(
     sys.argv[2], sep='\t', header=None, names=['gID', 'tID', 'gen_start', 'gen_stop', 'overall_start', 'overall_stop', 'strand', 'chr'])
 
+# make the chr column as string, to be sure
+transcript_coords_full['chr'] = transcript_coords_full['chr'].astype(str)
+exon_coords['chr'] = exon_coords['chr'].astype(str)
+
 # sort both dataframes by start coordinate to ensure the same ordering for the
 # following comparison of start coordinates
 transcript_coords_full = transcript_coords_full.sort_values(
