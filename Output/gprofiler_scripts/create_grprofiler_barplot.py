@@ -24,11 +24,17 @@ def parse_arguments():
         help="Path to the output plot file (SVG)"
     )
 
+    parser.add_argument(
+        "sep",
+        type=str,
+        help="Path to the output plot file (SVG)"
+    )
+
     return parser.parse_args()
 
 
-def main(go_terms, out_plot):
-    go_terms_df = pd.read_csv(go_terms, sep=',', header=0)
+def main(go_terms, out_plot, sep):
+    go_terms_df = pd.read_csv(go_terms, sep=sep, header=0)
     go_terms_df = go_terms_df.sort_values(
         by='negative_log10_of_adjusted_p_value', ascending=False)
     g = sbn.catplot(data=go_terms_df, x="negative_log10_of_adjusted_p_value",
@@ -40,4 +46,4 @@ def main(go_terms, out_plot):
 
 if __name__ == "__main__":
     args = parse_arguments()
-    main(args.go_terms, args.out_plot)
+    main(args.go_terms, args.out_plot, args.sep)
