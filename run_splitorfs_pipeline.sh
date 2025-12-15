@@ -7,8 +7,8 @@
 # ----- Help message: ----- #
 usage="
 Usage: ./run_pipeline.sh [-h] proteins.fa transcripts.fa annotation.bed \\
-    longestproteincodingtranscripts_DNA.fa longestproteincodingtranscripts_Protein.fa \\
-    GenomicPositions.bed exonPositions.bed
+    reference_transcripts.fa exonPositions.bed alignmethod cds_coordinate_bed \\
+  
 
 Arguments:
   proteins.fa
@@ -34,8 +34,12 @@ Arguments:
         Gene stable ID	Transcript stable ID	Exon region start (bp)	
         Exon region end (bp)	Transcript start (bp)	Transcript end (bp)
         	Strand	Chromosome/scaffold name
+
   alignmethod
       blast or diamnond: diamond is faster while blast recovers more hits
+
+  cds_coordinate_bed
+      genomic coordinates of the protein coding CDS reference regions
 
 
 Options:
@@ -62,7 +66,7 @@ RED='\033[0;31m' #Red colour for error messages
 NC='\033[0m'	 #No colour for normal messages
 
 # ----- check for right number of arguments ----- #
-if [ "$#" -ne 6 ]; then 
+if [ "$#" -ne 7 ]; then 
   echo -e "${RED}
 ERROR while executing the Pipeline!
 Wrong number of arguments.${NC}"
@@ -70,7 +74,7 @@ Wrong number of arguments.${NC}"
   exit 1
   
 # ----- check if any argument is a directory ----- #
-elif  [ -d "$1" ] || [ -d "$2" ] || [ -d "$3" ] || [ -d "$4" ] || [ -d "$5" ] || [ -d "$6" ] ; then
+elif  [ -d "$1" ] || [ -d "$2" ] || [ -d "$3" ] || [ -d "$4" ] || [ -d "$5" ] || [ -d "$6" ] || [ -d "$7" ]; then
   echo -e "${RED}
 ERROR while executing the Pipeline!
 One or more of the arguments are directories.${NC}"
@@ -93,6 +97,7 @@ annotation=$3
 proteinCodingTranscripts=$4
 exonPositions=$5
 align_method=$6
+cds_coordinate_bed=$7
 
 # ----- create the directory "Output" if it does not already exist ----- #
 if [ -d "./Output" ]
@@ -377,11 +382,15 @@ python ./Genomic_scripts_18_10_24/test/test_transcriptomic_to_genomic_coordinate
  ./Genomic_scripts_18_10_24/test/test_conversion_with_gen_trans.bed\
  $output/Unique_DNA_Regions_genomic.bed
 
+# ----- Subtract the genomic CDS coordinates from the unique regions ----- #
+bedtools subtract -s -a $output/Unique_DNA_Regions_genomic.bed \
+ -b ${cds_coordinate_bed} > $output/Unique_DNA_Regions_genomic_CDS_subtraction.bed
+
 
 # ----- calculate overlap between unique DNA and protein regions genomic         ----- #
 echo "calculate genomic overlap between unique DNA and protein regions"
 bedtools intersect\
- -a $output/Unique_DNA_Regions_genomic.bed\
+ -a $output/Unique_DNA_Regions_genomic_CDS_subtraction.bed\
  -b $output/Unique_Protein_Regions_genomic.bed\
  > $output/Unique_Regions_Overlap_genomic.bed
 
@@ -404,7 +413,7 @@ params=list(args = c('/Output/run_$timestamp/Unique_DNA_Regions.fa',
 '/Output/run_$timestamp/UniqueProteinORFPairs.txt',
 '/Output/run_$timestamp/Unique_DNA_Regions_for_riboseq.bed',
 '/Output/run_$timestamp/Unique_Protein_Regions_transcript_coords.bed',
-'/Output/run_$timestamp/Unique_DNA_Regions_genomic.bed',
+'/Output/run_$timestamp/$output/Unique_DNA_Regions_genomic_CDS_subtraction.bed',
 '/Output/run_$timestamp/Unique_Protein_Regions_genomic.bed',
 '/Output/run_$timestamp/Unique_Regions_Overlap_transcriptomic.bed',
 '/Output/run_$timestamp/Unique_Regions_Overlap_genomic.bed')))"
