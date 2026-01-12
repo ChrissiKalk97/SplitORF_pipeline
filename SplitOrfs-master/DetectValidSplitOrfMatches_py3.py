@@ -16,6 +16,8 @@ minLength = 50  # minimum number of amino acids for an ORF to be considered
 # rate of positions to be covered by the alignment of an ORF (to remove spurious local protein alignments)
 minAlignmentRate = 0.5
 colon = ":"
+# require a minimum length of the aligned sequence
+minAlignLength = 30
 
 
 def checkAlignments(Alignments, gene, target):
@@ -90,7 +92,7 @@ else:
         alignLength = float(int(elems[9])-int(elems[8])+1)
 
         # and (orf[0] == target[0])
-        if (float(elems[2]) >= identityCutoff) and (orfLenProt >= minLength) and ((alignLength/blastOrfLength) >= minAlignmentRate) and (orf[0] == target[0]):
+        if (float(elems[2]) >= identityCutoff) and (orfLenProt >= minLength) and ((alignLength/blastOrfLength) >= minAlignmentRate) and (orf[0] == target[0]) and (alignLength > minAlignLength):
             dummy = orf[2:5]
             dummy.append(str(elems[2]))
             dummy.append(str(int(alignLength)))
