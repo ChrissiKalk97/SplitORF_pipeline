@@ -17,7 +17,7 @@ minLength = 50  # minimum number of amino acids for an ORF to be considered
 minAlignmentRate = 0.5
 colon = ":"
 # require a minimum length of the aligned sequence
-minAlignLength = 30
+minAlignLength = 15
 
 
 def checkAlignments(Alignments, gene, target):
