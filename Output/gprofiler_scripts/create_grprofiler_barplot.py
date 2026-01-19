@@ -40,7 +40,11 @@ def parse_arguments():
 
 
 def main(go_terms, out_plot, sep, transcript_type):
-    go_terms_df = pd.read_csv(go_terms, sep=sep, header=0, decimal=',')
+    if sep == ',':
+        go_terms_df = pd.read_csv(go_terms, sep=sep, header=0)
+    elif sep == ';':
+        go_terms_df = pd.read_csv(go_terms, sep=sep, header=0, decimal=',')
+    go_terms_df
     go_terms_df = go_terms_df.sort_values(
         by='negative_log10_of_adjusted_p_value', ascending=False)
     g = sbn.catplot(data=go_terms_df,
