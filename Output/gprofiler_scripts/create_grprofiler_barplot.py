@@ -6,6 +6,12 @@ import argparse
 import seaborn as sbn
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+from matplotlib import font_manager as fm
+
+arial_fp = fm.FontProperties(
+    fname="/System/Library/Fonts/Supplemental/Arial.ttf")
+mpl.rcParams["font.family"] = arial_fp.get_name()
 
 
 def parse_arguments():
@@ -40,13 +46,21 @@ def parse_arguments():
 
 
 def main(go_terms, out_plot, sep, transcript_type):
+
+    def shorten_words(s, max_words=5):
+        words = s.split()
+        return s if len(words) <= max_words else " ".join(words[:max_words]) + "…"
+
+    sbn.set_theme(style="white", font=arial_fp.get_name())
+
     if sep == ',':
         go_terms_df = pd.read_csv(go_terms, sep=sep, header=0)
     elif sep == ';':
         go_terms_df = pd.read_csv(go_terms, sep=sep, header=0, decimal=',')
-    go_terms_df
+
     go_terms_df = go_terms_df.sort_values(
         by='negative_log10_of_adjusted_p_value', ascending=False)
+
     g = sbn.catplot(data=go_terms_df,
                     x="negative_log10_of_adjusted_p_value",
                     y="term_name",
@@ -56,7 +70,15 @@ def main(go_terms, out_plot, sep, transcript_type):
                     height=6,
                     aspect=1.5)
     plt.xticks(rotation=45, ha='right')
-    g.set_axis_labels("−log₁₀(adjusted p-value)", "GO Term")
+
+    # allow terms with up to 6 words, otherwise shorted dow to 6 words
+    labels = [shorten_words(t.get_text(), 6) for t in g.ax.get_yticklabels()]
+    g.ax.set_yticklabels(labels)
+
+    g.set_axis_labels(
+        r"$-\log_{10}(\text{adjusted p-value})$", "GO Term", fontsize=16)
+    g.ax.tick_params(axis='both', labelsize=14)
+
     # Add title
     g.fig.suptitle(
         f"GO term enrichment for {transcript_type} transcripts", fontsize=16)
