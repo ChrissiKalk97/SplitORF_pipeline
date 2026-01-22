@@ -8,6 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib import font_manager as fm
+from matplotlib.ticker import MaxNLocator
 
 arial_fp = fm.FontProperties(
     fname="/System/Library/Fonts/Supplemental/Arial.ttf")
@@ -85,6 +86,7 @@ def main(go_terms, out_plot, sep, transcript_type):
 
     # Optional: adjust space so title doesn't overlap
     g.fig.subplots_adjust(top=0.9)
+    g.ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     plt.savefig(f'{out_plot}', format="svg")
 
 
