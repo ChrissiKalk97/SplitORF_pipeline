@@ -156,11 +156,11 @@ def main(ur_dna_regions_genomic, exon_transcript_positions):
     ur_dna_regions_genomic_df['ur_name_new'] = ur_dna_regions_genomic_df['ur_name'].map(
         ur_name_dict)
     ur_dna_regions_genomic_df[['chr', 'gen_start', 'gen_end', 'ur_name_new', 'score', 'strand']].to_csv(os.path.join(
-        outdir, 'Unique_DNA_Regions_genomic_final.bed'), sep='\t', header=False)
+        outdir, 'Unique_DNA_Regions_genomic_final.bed'), sep='\t', header=False, index=False)
 
     # write CDS corrected transcriptomic coordinates
     ur_dna_regions_genomic_df_grouped[['trans_id', 'ur_trans_start', 'ur_trans_end', 'orf_name']].to_csv(
-        os.path.join(outdir, 'Unique_DNA_Regions_transcriptomic.bed'), sep='\t', header=False)
+        os.path.join(outdir, 'Unique_DNA_Regions_transcriptomic.bed'), sep='\t', header=False, index=False)
 
 
 if __name__ == '__main__':

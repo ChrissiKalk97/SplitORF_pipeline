@@ -35,18 +35,6 @@ packages <- c(
 
 # Install & load all
 invisible(lapply(packages, install_and_load))
-
-
-# library(seqinr)
-# library(ggplot2)
-# library(geomtextpath)
-# library(tidyr)
-# library(stringr)
-# library(dplyr)
-# library(VennDiagram)
-# library(RColorBrewer)
-# library(readr)
-# library(grid)
 ```
 
 
@@ -62,70 +50,58 @@ file1=paste0(datapath,params[[1]][[1]])
 file2=paste0(datapath,params[[1]][[2]])
 file3=paste0(datapath,params[[1]][[3]])
 file4=paste0(datapath,params[[1]][[4]])
-file5=paste0(datapath,params[[1]][[5]])
-file6 = paste0(datapath,params[[1]][[6]])
-file7 = paste0(datapath,params[[1]][[7]])
-file8 = paste0(datapath,params[[1]][[8]])
-file9 = paste0(datapath,params[[1]][[9]])
-file10 = paste0(datapath,params[[1]][[10]])
-file11 = paste0(datapath,params[[1]][[11]])
-
-# file1 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_16.12.2024-10.20.59_NMD_genomic_correction/Unique_DNA_regions.fa'
-# file2 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_16.12.2024-10.20.59_NMD_genomic_correction/Unique_Protein_regions.fa'
-# file3 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_16.12.2024-10.20.59_NMD_genomic_correction/Unique_DNA_Regions_gt20_filtered.bed'
-# file4 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_16.12.2024-10.20.59_NMD_genomic_correction/Unique_Protein_Regions_gt8_valid_filtered.bed'
-# file5 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_16.12.2024-10.20.59_NMD_genomic_correction/UniqueProteinORFPairs.txt'
-# file6 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_16.12.2024-10.20.59_NMD_genomic_correction/Unique_DNA_Regions_for_riboseq.bed'
-# file7 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_16.12.2024-10.20.59_NMD_genomic_correction/Unique_Protein_Regions_transcript_coords.bed'
-# file8 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_16.12.2024-10.20.59_NMD_genomic_correction/Unique_DNA_regions_genomic.bed'
-# file9 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_16.12.2024-10.20.59_NMD_genomic_correction/Unique_Protein_regions_genomic.bed'
-# file10 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_16.12.2024-10.20.59_NMD_genomic_correction/Unique_Regions_Overlap_transcriptomic.bed'
-# file11 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_28.11.2024-10.28.44_NMD_genomic_regions_with_unique_trans_coords/Unique_Regions_Overlap.bed'
-
-# file1 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_11.09.2024-11.12.39_blast_all_NMD_ref_filtered_non_overlapping/Unique_DNA_regions.fa'
-# file2 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_11.09.2024-11.12.39_blast_all_NMD_ref_filtered_non_overlapping/Unique_Protein_regions.fa'
-# file3 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_11.09.2024-11.12.39_blast_all_NMD_ref_filtered_non_overlapping/Unique_DNA_Regions_gt20_filtered.bed'
-# file4 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_11.09.2024-11.12.39_blast_all_NMD_ref_filtered_non_overlapping/Unique_Protein_Regions_gt8_valid_filtered.bed'
-# file5 = '/Users/christina/Documents/ExtendedSplitORFPipeline-master_13_11_23/Output/run_11.09.2024-11.12.39_blast_all_NMD_ref_filtered_non_overlapping/UniqueProteinORFPairs.txt'
+file5 = paste0(datapath,params[[1]][[5]])
+file6 = paste0(datapath,params[[1]][[7]])
+file7 = paste0(datapath,params[[1]][[10]])
 
 
 
-dnaresult<-read.fasta(file1)
-cat(paste0("Number of Unique Regions:\t",length(dnaresult),"  \n"))
-list=getSequence(dnaresult,as.string = TRUE)
-lengthlist<- rep(NA, length(list))
-for(i in 1:length(list)){
+file_dir=dirname(file1)
+
+dnaresult <- read.fasta(file1)
+cat(paste0("Number of Unique Regions:\t", length(dnaresult), "  \n"))
+list = getSequence(dnaresult,as.string = TRUE)
+lengthlist <- rep(NA, length(list))
+
+for(i in 1:length(list))
+{
   lengthlist[i]=nchar(list[[i]][[1]])
 }
-cat(paste0("Average length of unique region:\t",round(mean(lengthlist)),"  \n"))
-cat(paste0("Median length of unique region:\t",median(lengthlist),"  \n"))
-cat(paste0("Maximal length of unique region:\t",max(lengthlist)," (for region ", substr(getName(dnaresult[match(max(lengthlist),lengthlist)]),start = 1,stop = 31), ")  \n"))
-DNA_ids=substr(getName(dnaresult),start = 1,stop = 31)
-DNA_Unique_per_transcript=as.vector(table(DNA_ids))
+
+cat(paste0("Average length of unique region:\t", round(mean(lengthlist)),"  \n"))
+cat(paste0("Median length of unique region:\t", median(lengthlist),"  \n"))
+cat(paste0("Maximal length of unique region:\t", max(lengthlist), 
+           " (for region ", substr(getName(dnaresult[match(max(lengthlist), lengthlist)]), start = 1, stop = 31),
+           ")  \n"))
+
+DNA_ids = substr(getName(dnaresult), start = 1, stop = 31)
+DNA_Unique_per_transcript = as.vector(table(DNA_ids))
+
+protein_bed <- as.data.frame(read.table(file3, header = FALSE, sep="\t", stringsAsFactors=FALSE, quote=""))
 
 
-DNA_bed <- as.data.frame(read.table(file3,header = FALSE, sep="\t",stringsAsFactors=FALSE, quote=""))
-protein_bed <- as.data.frame(read.table(file4,header = FALSE, sep="\t",stringsAsFactors=FALSE, quote=""))
-
-
-unique_split_orfs = read.table(file5,header=T)
+unique_split_orfs = read.table(file4,header=T)
 ```
 
 
 ### This is the length distribution of the unique DNA regions
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, width = 4, height = 4}
 dna_lengths <- data.frame(dna_ur_len = unlist(lengthlist))
-#hist(lengthlist,breaks=100,col="blue",main="Length distribution of unique regions",xlab="Length of unique region")
-ggplot(dna_lengths, aes(x=dna_ur_len)) + geom_histogram(bins=100) +
+
+p <- ggplot(dna_lengths, aes(x=dna_ur_len)) + 
+  geom_histogram(bins = 100) +
   labs(title="Length distribution of DNA unique regions", x="Length of DNA unique region", y="Frequency")+
-  theme(panel.background = element_blank())
+  theme(panel.background = element_blank()) + 
+  xlim(0, 500)
+
+dir.create(file.path(file_dir, "Uniqueness_report_plots"))
+ggsave(file.path(file_dir, "Uniqueness_report_plots", "Length_DNA_URs.svg"), p, width = 4, height = 4, units = "in")
+
+p
 ```
-```{r, echo=FALSE}
-ggplot(dna_lengths, aes(x=dna_ur_len)) + geom_histogram(bins = 100) +
-  labs(title="Length distribution of DNA unique regions - zoom", x="Length of DNA unique region", y="Frequency")+
-  theme(panel.background = element_blank())+ xlim(0, 500)
-```
+
+
 
 
 
@@ -133,18 +109,27 @@ ggplot(dna_lengths, aes(x=dna_ur_len)) + geom_histogram(bins = 100) +
 ### This is the distribution of the unique DNA regions per transcript
 
 ```{r, echo=FALSE}
-DNA_un_trans <- data.frame(dna_per_trans = DNA_Unique_per_transcript)
-ggplot(DNA_un_trans, aes(x=dna_per_trans)) + geom_histogram(bins = 100) +
+unique_split_orfs$SOTransName <- paste(unique_split_orfs$geneID, unique_split_orfs$OrfTransID, sep = "|")
+names(DNA_Unique_per_transcript) <- names(table(DNA_ids))
+
+unique_split_orfs$UR_count <- DNA_Unique_per_transcript[unique_split_orfs$SOTransName]
+unique_split_orfs$UR_count[is.na(unique_split_orfs$UR_count)] <- 0
+
+p <- ggplot(unique_split_orfs, aes(x=UR_count)) + geom_histogram(bins = 100) +
   labs(title="Number of unique DNA regions per transcript", x="Number of unique DNA regions", y="Frequency")+
   theme(panel.background = element_blank())
-#hist(DNA_Unique_per_transcript,breaks=100,col="blue",main="Unique DNA regions per transcript",xlab="number of unique regions")
+
+ggsave(file.path(file_dir, "Uniqueness_report_plots", "Nr_URs_per_transcript.svg"), p, width = 4, height = 4, units = "in")
+
+p
 ```
 ### Position of unique DNA regions within transcripts
 ```{r, echo = FALSE}
 #position is still with respect to the ORF
-DNA_bed$OrfTransID <- str_split_fixed(str_split_fixed(DNA_bed$V1, '\\|', 2)[,2], ':', 2)[,1]
-DNA_bed$ORF_nr <- str_split_fixed(str_split_fixed(DNA_bed$V1, '\\|', 2)[,2], ':', 3)[,2]
-DNA_bed$ORF_start <- as.numeric(str_split_fixed(DNA_bed$V1, ':', 4)[,3])
+DNA_bed <- as.data.frame(read.table(file5, header = FALSE, sep="\t", stringsAsFactors=FALSE, quote=""))
+DNA_bed$OrfTransID <- str_split_fixed(DNA_bed$V1, '\\|', 2)[,2]
+DNA_bed$ORF_nr <- str_split_fixed(DNA_bed$V4, ':', 3)[,1]
+DNA_bed$ORF_start <- as.numeric(str_split_fixed(DNA_bed$V4, ':', 3)[,2])
 DNA_bed <- DNA_bed %>%
   rename(unique_start = V2)
 DNA_bed <- DNA_bed %>%
@@ -176,36 +161,43 @@ df_ORF_info_and_unique <- DNA_bed %>%
 
 
 
-df_ORF_info_and_unique$unique_start_percent <- df_ORF_info_and_unique$unique_start/(df_ORF_info_and_unique$ORF_end - df_ORF_info_and_unique$ORF_start)
+df_ORF_info_and_unique$unique_start_percent <- (df_ORF_info_and_unique$unique_start - df_ORF_info_and_unique$ORF_start)/(df_ORF_info_and_unique$ORF_end - df_ORF_info_and_unique$ORF_start)
 
-df_ORF_info_and_unique$unique_end_percent <- df_ORF_info_and_unique$unique_end/(df_ORF_info_and_unique$ORF_end - df_ORF_info_and_unique$ORF_start)
+df_ORF_info_and_unique$unique_end_percent <- (df_ORF_info_and_unique$unique_end - df_ORF_info_and_unique$ORF_start)/(df_ORF_info_and_unique$ORF_end - df_ORF_info_and_unique$ORF_start)
 
 ```
 
 
 
 ```{r, echo=FALSE}
-ggplot(df_ORF_info_and_unique, aes(x = unique_start_percent, fill = factor(orf_number))) +
+p <- ggplot(df_ORF_info_and_unique, aes(x = unique_start_percent, fill = factor(orf_number))) +
   geom_histogram() +
   scale_fill_hue(l=45) +
   scale_fill_manual(values = c('#75C1C5', '#CC79A7', '#FFC500')) +
   labs(title= "Start positions of unique regions inside of ORFs in %, by ORF position", x = "Start positions of unique regions inside of ORFs in %", y = "Frequency", fill = "unique region position in ORF") +
   theme(panel.background = element_blank())
+
+ggsave(file.path(file_dir, "Uniqueness_report_plots", "UR_start_percentage.svg"), p, width = 6, height = 4, units = "in")
+
+p
 ```
 
 ```{r, echo=FALSE}
-ggplot(df_ORF_info_and_unique, aes(x = unique_end_percent, fill = factor(orf_number))) +
+p <- ggplot(df_ORF_info_and_unique, aes(x = unique_end_percent, fill = factor(orf_number))) +
   geom_histogram() +
   scale_fill_hue(l=45) +
   scale_fill_manual(values = c('#75C1C5', '#CC79A7', '#FFC500')) +
   labs(title= "End positions of unique regions inside of ORFs in %, by ORF position", x = "End positions of unique regions inside of ORFs in %", y = "Frequency", fill = "unique region position in ORF") +
   theme(panel.background = element_blank())
+
+ggsave(file.path(file_dir, "Uniqueness_report_plots", "UR_end_percentage.svg"), p, width = 6, height = 4, units = "in")
+
+p
 ```
 
 
 
-
-```{r, echo=FALSE}
+```{r, echo=FALSE, results='asis'}
 perfect_uniques_frame <- df_ORF_info_and_unique[(df_ORF_info_and_unique$unique_start_percent < 0.01 & df_ORF_info_and_unique$orf_number == 'last') | (df_ORF_info_and_unique$unique_end_percent > 0.99 & df_ORF_info_and_unique$orf_number == 'first'), ]
 perfect_uniques_frame <- perfect_uniques_frame %>% group_by(OrfTransID) %>% summarize(count = n_distinct(orf_number))
 perfect_uniques_frame <- perfect_uniques_frame[perfect_uniques_frame$count > 1,]
@@ -225,18 +217,18 @@ cat(paste0("Number oftranscripts where all ORFs have unique regions:\t",length(u
 ### Overview of the found unique Protein regions:
 
 ```{r Protein stats,echo=FALSE,message=FALSE,results='asis'}
-proteinresult<-read.fasta(file2)#"E:/Justin_Backup_29.04.2020/Justin/Uni-Frankfurt/FP+Masterarbeit/PipeTest/Pipeline/Output/clean_run/Unique_Protein_Regions.fa"
-cat(paste0("Number of Unique Regions:\t",length(proteinresult),"  \n"))
-protlist=getSequence(proteinresult,as.string = TRUE)
+proteinresult<-read.fasta(file2)
+cat(paste0("Number of Unique Regions:\t", length(proteinresult), "  \n"))
+protlist=getSequence(proteinresult, as.string = TRUE)
 protlengthlist<- rep(NA, length(protlist))
 for(i in 1:length(protlist)){
   protlengthlist[i]=nchar(protlist[[i]][[1]])
 }
 cat(paste0("Average length of unique region:\t",round(mean(protlengthlist)),"  \n"))
 cat(paste0("Median length of unique region:\t",median(protlengthlist),"  \n"))
-cat(paste0("Maximal length of unique region:\t",max(protlengthlist)," (for region ", getName(proteinresult[match(max(protlengthlist),protlengthlist)]), ")  \n"))
-Protein_ids=substr(getName(proteinresult),start = 1,stop = 31)
-Protein_Unique_per_transcript=as.vector(table(Protein_ids))
+cat(paste0("Maximal length of unique region:\t", max(protlengthlist), " (for region ", getName(proteinresult[match(max(protlengthlist), protlengthlist)]), ")  \n"))
+Protein_ids=substr(getName(proteinresult), start = 1, stop = 31)
+Protein_Unique_per_transcript = as.vector(table(Protein_ids))
 ```
 
 ### This is the length distribution of the unique protein regions
@@ -244,27 +236,30 @@ Protein_Unique_per_transcript=as.vector(table(Protein_ids))
 ```{r, echo=FALSE}
 prot_lengths <- data.frame(prot_ur_len = unlist(protlengthlist))
 ggplot(prot_lengths, aes(x=prot_ur_len)) + geom_histogram(bins=100) +
-  labs(title="Length distribution of protein unique regions", x="Length of protein unique region", y="Frequency")+
+  labs(title="Length distribution of protein unique regions", x="Length of protein unique region", y="Frequency") +
+  xlim(0, 200) +
   theme(panel.background = element_blank())
-#hist(protlengthlist,breaks=100,col="blue",main="Length distribution of unique regions",xlab="Length of unique region")
+
 ```
 
-```{r, echo=FALSE}
-ggplot(prot_lengths, aes(x=prot_ur_len)) + geom_histogram(bins = 100) +
-  labs(title="Length distribution of potein unique regions - zoom", x="Length of protein unique region", y="Frequency")+
-  theme(panel.background = element_blank())+ xlim(0, 175)
-```
 
 
 ### This is the distribution of the unique Protein regions per transcript
 
 ```{r, echo=FALSE}
-prot_un_trans <- data.frame(prot_per_trans = Protein_Unique_per_transcript)
-ggplot(prot_un_trans, aes(x=prot_per_trans)) + geom_histogram(bins = 100) +
-  labs(title="Number of unique protein regions per transcript", x="Number of unique protein regions", y="Frequency")+
+names(Protein_Unique_per_transcript) <- names(table(Protein_ids))
+unique_split_orfs$prot_UR_count <- Protein_Unique_per_transcript[unique_split_orfs$SOTransName]
+unique_split_orfs$prot_UR_count[is.na(unique_split_orfs$prot_UR_count)] <- 0
+
+
+p <- ggplot(unique_split_orfs, aes(x=prot_UR_count)) + geom_histogram(bins = 100) +
+  labs(title="Number of unique protein regions per transcript", x="Number of unique protein regions", y="Frequency") +
+  scale_x_continuous(breaks = scales::breaks_width(1)) + 
   theme(panel.background = element_blank())
 
-#hist(Protein_Unique_per_transcript,breaks=100,col="blue",main="Unique Protein regions per transcript",xlab="number of unique regions")
+ggsave(file.path(file_dir, "Uniqueness_report_plots", "Nr_prot_URs_per_transcript.svg"), p, width = 4, height = 4, units = "in")
+
+p
 ```
 
 
@@ -298,26 +293,34 @@ df_ORF_info_and_unique_protein$unique_end_percent <- df_ORF_info_and_unique_prot
 
 
 ```{r, echo=FALSE}
-ggplot(df_ORF_info_and_unique_protein, aes(x = unique_start_percent, fill = factor(orf_number))) +
+p <- ggplot(df_ORF_info_and_unique_protein, aes(x = unique_start_percent, fill = factor(orf_number))) +
   geom_histogram() +
   scale_fill_hue(l=45) +
   scale_fill_manual(values = c('#75C1C5', '#CC79A7', '#FFC500')) +
   labs(title= "Start positions of unique protein regions inside of ORFs in %, by ORF position", x = "Start positions of unique protein regions inside of ORFs in %", y = "Frequency", fill = "unique protein region position in ORF") +
   theme(panel.background = element_blank())
+
+ggsave(file.path(file_dir, "Uniqueness_report_plots", "Start_percentage_protein_URs.svg"), p, width = 4, height = 4, units = "in")
+
+p
 ```
 
 ```{r, echo=FALSE}
-ggplot(df_ORF_info_and_unique_protein, aes(x = unique_end_percent, fill = factor(orf_number))) +
+p <- ggplot(df_ORF_info_and_unique_protein, aes(x = unique_end_percent, fill = factor(orf_number))) +
   geom_histogram() +
   scale_fill_hue(l=45) +
   scale_fill_manual(values = c('#75C1C5', '#CC79A7', '#FFC500')) +
   labs(title= "End positions of unique protein regions inside of ORFs in %, by ORF position", x = "End positions of unique protein regions inside of ORFs in %", y = "Frequency", fill = "unique protein region position in ORF") +
   theme(panel.background = element_blank())
+
+ggsave(file.path(file_dir, "Uniqueness_report_plots", "End_percentage_protein_URs.svg"), p, width = 4, height = 4, units = "in")
+
+p
 ```
 
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, results='asis'}
 perfect_uniques_frame <- df_ORF_info_and_unique_protein[(df_ORF_info_and_unique_protein$unique_start_percent < 0.01 & df_ORF_info_and_unique_protein$orf_number == 'last') | (df_ORF_info_and_unique_protein$unique_end_percent > 0.99 & df_ORF_info_and_unique_protein$orf_number == 'first'), ]
 perfect_uniques_frame <- perfect_uniques_frame %>% group_by(OrfTransID) %>% summarize(count = n_distinct(orf_number))
 perfect_uniques_frame <- perfect_uniques_frame[perfect_uniques_frame$count > 1,]
@@ -339,12 +342,12 @@ cat(paste0("Number of transcripts with unique DNA and Protein region:\t",length(
 
 # Overlap of unique protein and DNA regions
 ## transcriptomic
-```{r}
+```{r, echo = FALSE}
 
-DNA_regions_transcriptomic <- readr::read_tsv(file6, col_names = FALSE)
-protein_regions_transcriptomic <- readr::read_tsv(file7, col_names = FALSE)
+DNA_regions_transcriptomic <- readr::read_tsv(file5, col_names = FALSE)
+protein_regions_transcriptomic <- readr::read_tsv(file6, col_names = FALSE)
 
-
+svg("venn_plot.svg", width = 6, height = 6)
 # Chart
 venn.plot <- venn.diagram(
   x = list(unique(DNA_regions_transcriptomic$X4), unique(protein_regions_transcriptomic$X4)),
@@ -359,57 +362,37 @@ venn.plot <- venn.diagram(
 grid.newpage()
 grid::grid.draw(venn.plot)
 
-grid.text("Venn Diagram of DNA and Protein Transcriptomic Unique Regions", 
-          x = 0.5,            # Horizontal position (0 = left, 1 = right)
-          y = 0.98,           # Vertical position (0 = bottom, 1 = top)
-          gp = gpar(fontsize = 12, fontface = "bold"))  # Font settings
-```
-```{r}
+grid.text("Venn Diagram of ORFs with DNA and Protein unique regions", 
+          x = 0.5,            
+          y = 0.98,           
+          gp = gpar(fontsize = 12, fontface = "bold"))
 
-DNA_regions_genomic <- readr::read_tsv(file8, col_names = FALSE)
-protein_regions_genomic <- readr::read_tsv(file9, col_names = FALSE)
+invisible(dev.off())
 
-protein_region_ORFs = str_split_fixed(protein_regions_genomic$X4, ':', 3)[,2]
-DNA_region_ORFs = str_split_fixed(DNA_regions_genomic$X4, ':', 3)[,2]
-
-# Chart
-venn.plot <- venn.diagram(
-  x = list(unique(DNA_region_ORFs), unique(protein_region_ORFs)),
-  category.names = c("ORFs with unique DNA regions", "ORFs with unique protein regions"),
-  fill = c("#75C1C5", "#CC79A7"),
-  lty = "blank",
-  alpha = 0.5, 
-  filename = NULL,
-  # output=TRUE
-  cat.pos = c(-27, 27)
-)
-grid.newpage()
 grid::grid.draw(venn.plot)
 
-grid.text("Venn Diagram of DNA and Protein Genomic Unique Regions", 
-          x = 0.5,            # Horizontal position (0 = left, 1 = right)
-          y = 0.98,           # Vertical position (0 = bottom, 1 = top)
-          gp = gpar(fontsize = 12, fontface = "bold"))  # Font settings
+grid.text("Venn Diagram of ORFs with DNA and Protein unique regions", 
+          x = 0.5,            
+          y = 0.98,           
+          gp = gpar(fontsize = 12, fontface = "bold"))
 ```
-```{r}
 
-overlap_transcriptomic <- readr::read_tsv(file10, col_names = FALSE)
+
+
+```{r, echo = FALSE}
+
+overlap_transcriptomic <- readr::read_tsv(file7, col_names = FALSE)
 overlap_transcriptomic$ur_length <- overlap_transcriptomic$X3 - overlap_transcriptomic$X2
 
-ggplot(overlap_transcriptomic, aes(x=ur_length)) + geom_histogram(bins = 100) +
-  labs(title="Distribution of overlapping transcriptomic unique regions DNA and Protein", x="Length of overlap of unique regions", y="Frequency")+
+# question: how many o fthe DNA URs have an overlap with the protein URs?
+overlap_transcriptomic <- overlap_transcriptomic[!duplicated(overlap_transcriptomic),]
+
+p <- ggplot(overlap_transcriptomic, aes(x=ur_length)) + geom_histogram(bins = 100) +
+  labs(title="Distribution of overlapping unique regions DNA and Protein", x="Length of overlap of unique regions", y="Frequency")+
   theme(panel.background = element_blank())+xlim(0,500)
 
-```
-```{r}
+ggsave(file.path(file_dir, "Uniqueness_report_plots", "Length_dist_overlapping_prot_DNA_URs.svg"), p, width = 4, height = 4, units = "in")
 
-overlap_genomic <- readr::read_tsv(file11, col_names = FALSE)
-overlap_genomic$ur_length <- overlap_genomic$X3 - overlap_genomic$X2
-overlap_genomic <- overlap_genomic %>% group_by(X4) %>%
-  summarize(ur_length = sum(ur_length))
-
-ggplot(overlap_genomic, aes(x=ur_length)) + geom_histogram(bins = 100) +
-  labs(title="Distribution of overlapping genomic unique regions DNA and Protein", x="Length of overlap of unique regions", y="Frequency")+
-  theme(panel.background = element_blank())+xlim(0,500)
+p
 
 ```
