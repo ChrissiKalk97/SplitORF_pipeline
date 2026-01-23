@@ -51,8 +51,8 @@ file2=paste0(datapath,params[[1]][[2]])
 file3=paste0(datapath,params[[1]][[3]])
 file4=paste0(datapath,params[[1]][[4]])
 file5 = paste0(datapath,params[[1]][[5]])
-file6 = paste0(datapath,params[[1]][[7]])
-file7 = paste0(datapath,params[[1]][[10]])
+file6 = paste0(datapath,params[[1]][[6]])
+file7 = paste0(datapath,params[[1]][[7]])
 
 
 
@@ -300,7 +300,7 @@ p <- ggplot(df_ORF_info_and_unique_protein, aes(x = unique_start_percent, fill =
   labs(title= "Start positions of unique protein regions inside of ORFs in %, by ORF position", x = "Start positions of unique protein regions inside of ORFs in %", y = "Frequency", fill = "unique protein region position in ORF") +
   theme(panel.background = element_blank())
 
-ggsave(file.path(file_dir, "Uniqueness_report_plots", "Start_percentage_protein_URs.svg"), p, width = 4, height = 4, units = "in")
+ggsave(file.path(file_dir, "Uniqueness_report_plots", "Start_percentage_protein_URs.svg"), p, width = 6, height = 4, units = "in")
 
 p
 ```
@@ -313,7 +313,7 @@ p <- ggplot(df_ORF_info_and_unique_protein, aes(x = unique_end_percent, fill = f
   labs(title= "End positions of unique protein regions inside of ORFs in %, by ORF position", x = "End positions of unique protein regions inside of ORFs in %", y = "Frequency", fill = "unique protein region position in ORF") +
   theme(panel.background = element_blank())
 
-ggsave(file.path(file_dir, "Uniqueness_report_plots", "End_percentage_protein_URs.svg"), p, width = 4, height = 4, units = "in")
+ggsave(file.path(file_dir, "Uniqueness_report_plots", "End_percentage_protein_URs.svg"), p, width = 6, height = 4, units = "in")
 
 p
 ```
@@ -347,7 +347,7 @@ cat(paste0("Number of transcripts with unique DNA and Protein region:\t",length(
 DNA_regions_transcriptomic <- readr::read_tsv(file5, col_names = FALSE)
 protein_regions_transcriptomic <- readr::read_tsv(file6, col_names = FALSE)
 
-svg("venn_plot.svg", width = 6, height = 6)
+
 # Chart
 venn.plot <- venn.diagram(
   x = list(unique(DNA_regions_transcriptomic$X4), unique(protein_regions_transcriptomic$X4)),
@@ -359,6 +359,7 @@ venn.plot <- venn.diagram(
   # output=TRUE
   cat.pos = c(-27, 27)
 )
+svg(file.path(file_dir, "Uniqueness_report_plots", "venn_plot_DNA_Protein_UR_overlap_ORF_level.svg"), width = 6, height = 4)
 grid.newpage()
 grid::grid.draw(venn.plot)
 

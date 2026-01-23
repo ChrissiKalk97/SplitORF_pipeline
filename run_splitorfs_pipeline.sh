@@ -413,7 +413,6 @@ params=list(args = c('/Output/run_$timestamp/Unique_DNA_Regions.fa',
 '/Output/run_$timestamp/Unique_DNA_Regions_transcriptomic.bed', 
 '/Output/run_$timestamp/Unique_Protein_Regions_gt8_valid_filtered.bed',
 '/Output/run_$timestamp/UniqueProteinORFPairs.txt',
-'/Output/run_$timestamp/Unique_DNA_Regions_transcriptomic.bed',
 '/Output/run_$timestamp/Unique_Protein_Regions_transcript_coords.bed',
 '/Output/run_$timestamp/Unique_Regions_Overlap_transcriptomic.bed')))"
 
