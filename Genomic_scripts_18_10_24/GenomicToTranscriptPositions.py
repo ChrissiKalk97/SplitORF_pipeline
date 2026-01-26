@@ -146,17 +146,19 @@ def main(ur_dna_regions_genomic, exon_transcript_positions,
     ur_dna_regions_genomic_df_grouped = ur_dna_regions_genomic_df_grouped.reset_index()
     ur_dna_regions_genomic_df_grouped['ur_name_old'] = ur_dna_regions_genomic_df_grouped['ur_name']
     # get a dict with the old and the new names
-    ur_name_dict = ur_dna_regions_genomic_df_grouped.set_index('ur_name_old')[
-        'ur_name'].to_dict()
     ur_dna_regions_genomic_df_grouped['ur_name'] = ur_dna_regions_genomic_df_grouped['trans_id'] \
         + ':' + ur_dna_regions_genomic_df_grouped['orf'] + ':' + \
         ur_dna_regions_genomic_df_grouped['orf_start'].astype(
         str) + ':' + ur_dna_regions_genomic_df_grouped['orf_end'].astype(str) \
         + ':' + ur_dna_regions_genomic_df_grouped['ur_trans_start'].astype(str) \
         + ':' + ur_dna_regions_genomic_df_grouped['ur_trans_end'].astype(str)
+
     ur_dna_regions_genomic_df_grouped['orf_name'] = ur_dna_regions_genomic_df_grouped['orf'] \
         + ':' + ur_dna_regions_genomic_df_grouped['orf_start'].astype(
         str) + ':' + ur_dna_regions_genomic_df_grouped['orf_end'].astype(str)
+
+    ur_name_dict = ur_dna_regions_genomic_df_grouped.set_index('ur_name_old')[
+        'ur_name'].to_dict()
 
     ############################################################################
     # Write results                                                            #
