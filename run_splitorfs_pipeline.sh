@@ -374,8 +374,11 @@ bedtools subtract -s -a "${output}"/Unique_DNA_Regions_genomic.bed \
 
 # ----- CDS subtraction for transcriptomic regions and name correction genomic regions ----- #
 python ./Genomic_scripts_18_10_24/GenomicToTranscriptPositions.py \
- "${output}"/Unique_DNA_Regions_genomic_CDS_subtraction.bed \
- "${output}"/"${exon_positions_transcript}"
+ --ur_dna_regions_genomic "${output}"/Unique_DNA_Regions_genomic_CDS_subtraction.bed \
+ --exon_transcript_positions "${output}"/"${exon_positions_transcript}" \
+ --out_unique_dna_gen "${output}"/Unique_DNA_Regions_genomic_final.bed \
+ --out_unique_dna_trans "${output}"/Unique_DNA_Regions_transcriptomic.bed \
+ --out_unique_dna_for_fasta "${output}"/Unique_DNA_Regions_transcriptomic_for_FASTA.bed
 
 # ----- calculate overlap between unique DNA and protein regions genomic         ----- #
 echo "calculate genomic overlap between unique DNA and protein regions"
@@ -388,8 +391,8 @@ bedtools intersect\
 # ----- calculate overlap between unique DNA and protein regions transcriptomic         ----- #
 echo "calculate transcriptomic overlap between unique DNA and protein regions"
 bedtools intersect\
- -a "${output}"/Unique_DNA_Regions_transcriptomic.bed\
- -b "${output}"/Unique_Protein_Regions_transcript_coords.bed\
+ -a "${output}"/Unique_DNA_Regions_transcriptomic.bed \
+ -b "${output}"/Unique_Protein_Regions_transcript_coords.bed \
  > "${output}"/Unique_Regions_Overlap_transcriptomic.bed
 
 
@@ -397,7 +400,7 @@ bedtools intersect\
 bedtools getfasta\
  -fi "${output}"/ValidORF_DNA_Sequences.fa\
  -fo "${output}"/Unique_DNA_Regions.fa\
- -bed "${output}"/Unique_DNA_Regions_transcriptomic.bed
+ -bed "${output}"/Unique_DNA_Regions_transcriptomic_for_FASTA.bed
 
 bedtools getfasta\
  -fi "${output}"/OrfProteins.fa\
@@ -410,9 +413,9 @@ bedtools getfasta\
 R -e "rmarkdown::render('Extended_Pipeline_new.Rmd',output_file='"${output}"/Uniqueness_Report.html',
 params=list(args = c('/Output/run_$timestamp/Unique_DNA_Regions.fa', 
 '/Output/run_$timestamp/Unique_Protein_Regions.fa',
-'/Output/run_$timestamp/Unique_DNA_Regions_transcriptomic.bed', 
 '/Output/run_$timestamp/Unique_Protein_Regions_gt8_valid_filtered.bed',
 '/Output/run_$timestamp/UniqueProteinORFPairs.txt',
+'/Output/run_$timestamp/Unique_DNA_Regions_transcriptomic.bed', 
 '/Output/run_$timestamp/Unique_Protein_Regions_transcript_coords.bed',
 '/Output/run_$timestamp/Unique_Regions_Overlap_transcriptomic.bed')))"
 
@@ -433,10 +436,10 @@ python ./SplitOrfs-master/get_background_genes_for_go_analysis.py \
 mv "${output}"/Unique_Protein_Regions_gt8_valid_filtered.bed "${output}"/Unique_Protein_Regions_protein_coordinates.bed
 rm "${output}"/Unique_DNA_Regions_gt20_filtered.bed
 rm "${output}"/Unique_DNA_Regions_reorganized.bed
-rm "${output}"/Unique_DNA_Regions_reorganized.bed
 rm "${output}"/Unique_DNA_Regions_gt20.bed
 rm "${output}"/ProteinDatabase*
 rm "${output}"/intersectResults.txt
 rm "${output}"/Unique_Protein_Regions_gt8_valid.bed
 rm "${output}"/Unique_Protein_Regions_gt8.bed
 rm "${output}"/Unique_DNA_Regions_genomic_CDS_subtraction.bed
+rm "${output}"/Unique_DNA_Regions_transcriptomic_for_FASTA.bed

@@ -14,17 +14,26 @@ def parse_args():
     )
 
     # Required positional arguments
-    parser.add_argument('ur_dna_regions_genomic',
+    parser.add_argument('--ur_dna_regions_genomic',
                         help='Path to Unique_DNA_regions_genomic.bed')
 
-    parser.add_argument('exon_transcript_positions',
+    parser.add_argument('--exon_transcript_positions',
                         help='Path to ExonCoordsWIthChr110_transcript_positions.bed')
+
+    parser.add_argument('--out_unique_dna_gen',
+                        help='Name of output Unique DNA regions genomic')
+
+    parser.add_argument('--out_unique_dna_trans',
+                        help='Name of output Unique DNA regions transcriptomic')
+
+    parser.add_argument('--out_unique_dna_for_fasta',
+                        help='Name of output Unique DNA regions genomic for FASTA creation')
 
     return parser.parse_args()
 
 
-def main(ur_dna_regions_genomic, exon_transcript_positions):
-    outdir = os.path.dirname(ur_dna_regions_genomic)
+def main(ur_dna_regions_genomic, exon_transcript_positions,
+         out_unique_dna_gen, out_unique_dna_trans, out_unique_dna_for_fasta):
 
     ############################################################################
     # Load data                                                                #
@@ -155,12 +164,22 @@ def main(ur_dna_regions_genomic, exon_transcript_positions):
     # write genomic coordinates with correct orf names
     ur_dna_regions_genomic_df['ur_name_new'] = ur_dna_regions_genomic_df['ur_name'].map(
         ur_name_dict)
-    ur_dna_regions_genomic_df[['chr', 'gen_start', 'gen_end', 'ur_name_new', 'score', 'strand']].to_csv(os.path.join(
-        outdir, 'Unique_DNA_Regions_genomic_final.bed'), sep='\t', header=False, index=False)
+    ur_dna_regions_genomic_df[['chr', 'gen_start', 'gen_end', 'ur_name_new', 'score', 'strand']].to_csv(
+        out_unique_dna_gen, sep='\t', header=False, index=False)
 
     # write CDS corrected transcriptomic coordinates
     ur_dna_regions_genomic_df_grouped[['trans_id', 'ur_trans_start', 'ur_trans_end', 'orf_name']].to_csv(
-        os.path.join(outdir, 'Unique_DNA_Regions_transcriptomic.bed'), sep='\t', header=False, index=False)
+        out_unique_dna_trans, sep='\t', header=False, index=False)
+
+    ur_dna_regions_genomic_df_grouped['ur_trans_start'] = ur_dna_regions_genomic_df_grouped['ur_trans_start'] - \
+        ur_dna_regions_genomic_df_grouped['orf_start']
+    ur_dna_regions_genomic_df_grouped['ur_trans_end'] = ur_dna_regions_genomic_df_grouped['ur_trans_end'] - \
+        ur_dna_regions_genomic_df_grouped['orf_start']
+    ur_dna_regions_genomic_df_grouped['orf_id'] = ur_dna_regions_genomic_df_grouped['trans_id'] + \
+        ':' + ur_dna_regions_genomic_df_grouped['orf_name']
+
+    ur_dna_regions_genomic_df_grouped[['orf_id', 'ur_trans_start', 'ur_trans_end']].to_csv(
+        out_unique_dna_for_fasta, sep='\t', header=False, index=False)
 
 
 if __name__ == '__main__':
@@ -169,5 +188,9 @@ if __name__ == '__main__':
 
     ur_dna_regions_genomic = args.ur_dna_regions_genomic
     exon_transcript_positions = args.exon_transcript_positions
+    out_unique_dna_gen = args.out_unique_dna_gen
+    out_unique_dna_trans = args.out_unique_dna_trans
+    out_unique_dna_for_fasta = args.out_unique_dna_for_fasta
 
-    main(ur_dna_regions_genomic, exon_transcript_positions)
+    main(ur_dna_regions_genomic, exon_transcript_positions,
+         out_unique_dna_gen, out_unique_dna_trans, out_unique_dna_for_fasta)
