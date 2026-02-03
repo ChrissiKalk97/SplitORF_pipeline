@@ -77,12 +77,12 @@ def main(go_terms, out_plot, sep, transcript_type):
     g.ax.set_yticklabels(labels)
 
     g.set_axis_labels(
-        r"$-\log_{10}(\text{adjusted p-value})$", "GO Term", fontsize=16)
-    g.ax.tick_params(axis='both', labelsize=14)
+        r"$-\log_{10}(\text{adjusted p-value})$", "GO Term", fontsize=20)
+    g.ax.tick_params(axis='both', labelsize=20)
 
     # Add title
     g.fig.suptitle(
-        f"GO term enrichment for {transcript_type} transcripts", fontsize=16)
+        f"GO term enrichment for {transcript_type} transcripts", fontsize=20)
 
     # Optional: adjust space so title doesn't overlap
     g.fig.subplots_adjust(top=0.9)
