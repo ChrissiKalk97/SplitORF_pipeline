@@ -65,7 +65,7 @@ RED='\033[0;31m' #Red colour for error messages
 NC='\033[0m'	 #No colour for normal messages
 
 # ----- check for right number of arguments ----- #
-if [ "$#" -ne 7 ]; then 
+if [ "$#" -ne 8 ]; then 
   echo -e "${RED}
 ERROR while executing the Pipeline!
 Wrong number of arguments.${NC}"
@@ -97,41 +97,45 @@ protein_coding_transcripts=$4
 exon_positions=$5
 align_method=$6
 cds_coordinate_bed=$7
+output_dir=$8
+
+# ----- get the script directory ----- #
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 
 # ----- create the directory "Output" if it does not already exist ----- #
-if [ -d "./Output" ]
+if [ -d "$output_dir" ]
 then
-	echo "Directory ./Output already exists."
+	echo "Directory ${output_dir} already exists."
 else
-	echo "Directory ./Output does not exist, creating ..."
-	mkdir ./Output
-	echo "Directory ./Output created."
+	echo "Directory ${output_dir} does not exist, creating ..."
+	mkdir "${output_dir}"
+	echo "Directory ${output_dir} created."
 fi
 
 # ----- create a run specific output folder ----- #
 timestamp=$(date "+%d.%m.%Y-%H.%M.%S")
-if [ -d "./Output/run_$timestamp" ]
+if [ -d "${output_dir}/run_$timestamp" ]
 then 
-	echo "Directory ./Output/run_$timestamp already exists." >&2
+	echo "Directory ${output_dir}/run_$timestamp already exists." >&2
 	exit 1
 else
-	mkdir ./Output/run_$timestamp
-  mkdir ./Output/run_$timestamp/tests
+	mkdir "${output_dir}"/run_$timestamp
+  mkdir "${output_dir}"/run_$timestamp/tests
 fi
 
 # ----- Create a log file that saves all text outputs of the pipeline ----- #
-exec > >(tee -i ./Output/run_$timestamp/Logfile.txt)
+exec > >(tee -i "${output_dir}/run_$timestamp/Logfile.txt")
 exec 2>&1
 
-echo "Log Location should be: [ ./Output/run_$timestamp ]"
+echo "Log Location should be: [ ${output_dir}/run_$timestamp ]"
 
 # ----- initialize conda ----- #
 source $(conda info --base)/etc/profile.d/conda.sh
 
 # ----- activate conda SplitORF environment needed for the pipeline ----- #
 conda activate SplitORF
-output="./Output/run_$timestamp"
+output="${output_dir}/run_$timestamp"
 echo "*********"${output}"**********"
 echo "run the Pipeline with: " "${output}" "${proteins}" "${transcripts}" "${annotation}" "${protein_coding_transcripts}" "${exon_positions}"
 
@@ -320,7 +324,7 @@ rm "${output}"/minus_strand.bed
 echo "Change the Positions of the unique DNA and Protein as well as the ValidORF bed to their positions within the unspliced transcript"
 exon_positions_transcript=$(basename "${exon_positions}" .bed)_transcript_positions.bed
 echo "Change the positions to their genomic equivalent and transform into UCSC format"
-python ./Genomic_scripts_18_10_24/ExonToTranscriptPositions.py\
+python ./Genomic_scripts_18_10_24/exon_to_transcript_positions.py\
  "${output}"/"${exon_positions_sorted}"\
   "${output}"/"${exon_positions_transcript}"
 
@@ -329,7 +333,7 @@ python ./Genomic_scripts_18_10_24/ExonToTranscriptPositions.py\
 
 # ----- Test functionality of the exon coordinate conversion ----- #
 mkdir "${output}"/tests
-python ./Genomic_scripts_18_10_24/ExonToTranscriptPositions.py\
+python ./Genomic_scripts_18_10_24/exon_to_transcript_positions.py\
  ./Genomic_scripts_18_10_24/test/exon_transcript_positions_unit_test.bed\
   "${output}"/tests/exon_transcript_positions_results.bed
 
