@@ -4,7 +4,7 @@ channels:
   - bioconda
   - conda-forge
 dependencies:
-  - blast
+  - bioconda::blast
   - samtools
   - ca-certificates
   - openssl
@@ -19,4 +19,9 @@ dependencies:
   - certifi
   - ipykernel
   - bioconda::gffread
+  - conda-lock
+  - jq
+  - r-base
+  - r-essentials
+  - bioconda::bioconductor-cmapr
 prefix: /Users/christina/miniforge3/envs/SplitORF
