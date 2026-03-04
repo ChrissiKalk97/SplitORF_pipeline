@@ -29,12 +29,31 @@ requirements:
     - seaborn
     - certifi
     - ipykernel
-    - bioconda::gffread
+    - gffread
     - conda-lock
     - jq
     - r-base
     - r-essentials
     - bioconductor-cmapr
+    - r-ggplot2
+    - r-geomtextpath
+    - r-tidyr
+    - r-stringr
+    - r-dplyr
+    - r-gridextra
+    - r-svglite
+    - r-venndiagram
+    - r-rcolorbrewer
+    - r-readr
+    - r-rmarkdown
+    - r-glue
+    - r-reticulate
+    - r-upsetr
+    - r-knitr
+    - r-lemon
+    - r-data.table
+    - r-kableextra
+
 about:
   home: https://github.com/ChrissiKalk97/SplitORF_pipeline/tree/bioconda-splitorf-pipeline/split-orf-prediction
   license: MIT

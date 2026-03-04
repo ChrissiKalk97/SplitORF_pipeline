@@ -14,14 +14,18 @@ dependencies:
   - biopython
   - pybedtools
   - diamond
+  - htseq
+  - pandas
   - matplotlib
   - seaborn
   - certifi
   - ipykernel
+  - rnanorm
   - bioconda::gffread
   - conda-lock
   - jq
   - r-base
   - r-essentials
+  - r-seqinr
   - bioconda::bioconductor-cmapr
 prefix: /Users/christina/miniforge3/envs/SplitORF

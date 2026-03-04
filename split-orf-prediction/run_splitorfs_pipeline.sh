@@ -455,7 +455,7 @@ bedtools getfasta\
 
 
 # ----- Create a report with basics statistics of the uniqueness scripts    ----- #
-R -e "rmarkdown::render('Extended_Pipeline_new.Rmd',output_file='"${output}"/Uniqueness_Report.html',
+R -e "rmarkdown::render('"${script_dir}"/Extended_Pipeline_new.Rmd',output_file='"${output}"/Uniqueness_Report.html',
 params=list(args = c('${output}/Unique_DNA_Regions.fa', 
 '${output}/Unique_Protein_Regions.fa',
 '${output}/Unique_Protein_Regions_gt8_valid_filtered.bed',
