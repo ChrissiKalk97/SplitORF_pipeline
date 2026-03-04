@@ -1,47 +1,58 @@
 #!/bin/bash
 
-# ----- This script is the master script to run the extended split-ORF pipeline. The Inputs are described below, ----- #
-# ----- the outputs are all stored in a new folder which is created at the given location. The most interesting  ----- #
-# ----- outputs are                                                                                              ----- #
+# ----- This script is the master script to run the extended split-ORF pipeline. The Inputs are described below,  ----- #
+# ----- the Outputs are all stored in a new folder which is created at the given location. The pipeline predicts  ----- #
+# ----- potential Split-ORF transcripts based on the supplied sequences of the transcripts of interest            ----- #
+# ----- unique regions of the potential Split-ORFs which can be used for Ribo-seq validation are calculated       ----- #
 
 # ----- Help message: ----- #
 usage="
-Usage: ./run_pipeline.sh [-h] proteins.fa transcripts.fa annotation.bed \\
-    reference_transcripts.fa exon_positions.bed alignmethod cds_coordinate_bed \\
+Usage: ./run_splitorfs_pipeline.sh [-h] json-file \\
   
 
-Arguments:
-  proteins.fa
+Arguments in JSON file:
+  file_path
+    Path to directory where Input files are stored.
+    All Input files should be in the same directory.
+  proteins
       A multi-FASTA file containing the amino acid sequences of the proteins
-      that are used as references (whole transcriptome, downloaded from Ensembl version 110).
+      that are used as references (e.g. protein coding sequences from Ensembl 
+      with certain transcript support level).
 
-  transcripts.fa
+  transcripts
       A multi-FASTA file containing the DNA sequences of the reads/transcripts
       that shall be analyzed (input transcripts).
 
-  annotation.bed
-      A BED file containing the annotations for the used genome build.
+  annotation
+      A TAB delimited file containing the PFAM annotations for the used genome build.
       These were downloaded from Ensembl and modified with a custom script.
+      Format:
+        GeneID TranscriptID PFAM ID PFAM start PFAM end
+        and remodel with Input_scripts/convert_ensmebl_output_to_bed.py
 
-  reference_transcripts.fa
-      A multi-FASTA file of all reference transcripts (should not contain the input
-      transcripts).
+  reference_transcripts
+      A multi-FASTA file of all reference transcripts (should not contain the 
+      input transcripts).
 
-  exon_positions.bed
+  exon_positions
       A BED file containing the chromosome-specific positions of all exons.
       These can be downloaded from Biomart using the structures functionality.
+      Format:
+        downlaod from Ensembl with Chromosome/scaffold name Gene stable ID
+         Transcript stable ID Genomic coding start  Genomic coding end  Strand
+        and remodel with Input_scripts/CDS_coordinates_to_bedfile.py
+
+  align_method
+      blast or diamnond: diamond is faster while blast recovers more hits
+
+  cds_coordinate_bed
+      genomic coordinates of the protein coding CDS reference regions
       Format:
         Gene stable ID	Transcript stable ID	Exon region start (bp)	
         Exon region end (bp)	Transcript start (bp)	Transcript end (bp)
         	Strand	Chromosome/scaffold name
 
-  alignmethod
-      blast or diamnond: diamond is faster while blast recovers more hits
-
-  cds_coordinate_bed
-      genomic coordinates of the protein coding CDS reference regions
-
-  output_directory
+  output_dir
       Directory where Output folder with time stamp will be placed
       Please use absolute paths!!!
 
@@ -69,15 +80,41 @@ RED='\033[0;31m' #Red colour for error messages
 NC='\033[0m'	 #No colour for normal messages
 
 # ----- check for right number of arguments ----- #
-if [ "$#" -ne 8 ]; then 
+if [ "$#" -ne 1 ]; then 
   echo -e "${RED}
 ERROR while executing the Pipeline!
 Wrong number of arguments.${NC}"
   echo "$usage" >&2
   exit 1
-  
+fi
+
+# ----- Assign the given arguments to variables ----- #
+CONFIG="$1"
+
+echo "CONFIG is: $CONFIG"
+ls -l "$CONFIG"
+
+file_path=$(jq -r '.file_path' "$CONFIG")
+proteins=$(jq -r '.proteins' "$CONFIG")
+transcripts=$(jq -r '.transcripts' "$CONFIG")
+annotation=$(jq -r '.annotation' "$CONFIG")
+reference_transcripts=$(jq -r '.reference_transcripts' "$CONFIG")
+exon_positions=$(jq -r '.exon_positions' "$CONFIG")
+align_method=$(jq -r '.align_method' "$CONFIG")
+cds_coordinate_bed=$(jq -r '.cds_coordinate_bed' "$CONFIG")
+output_dir=$(jq -r '.output_dir' "$CONFIG")
+
+
+# Construct full paths
+proteins="$file_path/$proteins"
+transcripts="$file_path/$transcripts"
+annotation="$file_path/$annotation"
+reference_transcripts="$file_path/$reference_transcripts"
+exon_positions="$file_path/$exon_positions"
+cds_coordinate_bed="$file_path/$cds_coordinate_bed"
+
 # ----- check if any argument is a directory ----- #
-elif  [ -d "$1" ] || [ -d "$2" ] || [ -d "$3" ] || [ -d "$4" ] || [ -d "$5" ] || [ -d "$6" ] || [ -d "$7" ]; then
+if  [ -d "$proteins" ] || [ -d "$transcripts" ] || [ -d "$annotation" ] || [ -d "$reference_transcripts" ] || [ -d "$exon_positions" ] || [ -d "$align_method" ] || [ -d "$cds_coordinate_bed" ]; then
   echo -e "${RED}
 ERROR while executing the Pipeline!
 One or more of the arguments are directories.${NC}"
@@ -85,7 +122,7 @@ One or more of the arguments are directories.${NC}"
   exit 1
   
 # ----- check if every argument has the correct file extension ----- #
-elif ! [[ $1 =~ \.(fa|fasta)$ ]] || ! [[ $2 =~ \.(fa|fasta)$ ]] || ! [[ $3 =~ \.(txt|bed)$ ]] || ! [[ $4 =~ \.(fa|fasta)$ ]] || ! [[ $5 =~ \.(txt|bed)$ ]]; then
+elif ! [[ $proteins =~ \.(fa|fasta)$ ]] || ! [[ $transcripts =~ \.(fa|fasta)$ ]] || ! [[ $annotation =~ \.(txt|bed|tsv)$ ]] || ! [[ $reference_transcripts =~ \.(fa|fasta)$ ]] || ! [[ $exon_positions =~ \.(txt|bed|tsv)$ ]]; then
   echo -e "${RED}
 ERROR while executing the Pipeline!
 One or more of the arguments are not in the specified file format.${NC}"
@@ -93,15 +130,6 @@ One or more of the arguments are not in the specified file format.${NC}"
   exit 1
 fi
 
-# ----- Assign the given arguments to variables ----- #
-proteins=$1
-transcripts=$2
-annotation=$3
-protein_coding_transcripts=$4
-exon_positions=$5
-align_method=$6
-cds_coordinate_bed=$7
-output_dir=$8
 
 # ----- get the script directory ----- #
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -136,7 +164,7 @@ echo "Log Location should be: [ ${output_dir}/run_$timestamp ]"
 
 output="${output_dir}/run_$timestamp"
 echo "*********"${output}"**********"
-echo "run the Pipeline with: " "${output}" "${proteins}" "${transcripts}" "${annotation}" "${protein_coding_transcripts}" "${exon_positions}"
+echo "run the Pipeline with: " "${output}" "${proteins}" "${transcripts}" "${annotation}" "${reference_transcripts}" "${exon_positions}"
 
 # ----- create Orf sequences using the OrfFinder script ----- #
 echo "searching for possible ORFs"
@@ -249,11 +277,12 @@ else
 fi
 
 
-R -e "rmarkdown::render('Split-ORF_Report.Rmd',
-output_file='"${output}"/Split-ORF_Report.html',
+R -e "rmarkdown::render('${script_dir}/Split-ORF_Report.Rmd',
+output_file='${output}/Split-ORF_Report.html',
 params=list(args = c('${output}/ValidProteinORFPairs_sortCol3.txt',
 '${output}/UniqueProteinORFPairs_annotated.txt',
-'$transcripts_R')))"
+'$transcripts_R',
+knit_root_dir='${output}')))"
 
 
 # ----- extract the Valid ORF sequences from the given transcripts ----- #
@@ -273,7 +302,7 @@ python "${script_dir}"/Uniqueness_scripts/select_valid_orf_dna_sequences.py \
 # ----- Determine Unique DNA regions by exact matching of input transcripts to reference transcripts ----- #
 # ----- with default paramters (-l = 20) for the minimum matchlength  ----- #
 echo "Align ORF-transcripts(DNA) to protein coding transcripts with mummer -maxmatch"
-mummer -maxmatch "${protein_coding_transcripts}" "${output}"/ValidORF_DNA_Sequences.fa > "${output}"/DNA_maxmatch.mums
+mummer -maxmatch "${reference_transcripts}" "${output}"/ValidORF_DNA_Sequences.fa > "${output}"/DNA_maxmatch.mums
 
 echo "Select the non matching regions as unique regions and save as bedfile"
 python "${script_dir}"/Uniqueness_scripts/find_unique_regions.py \
