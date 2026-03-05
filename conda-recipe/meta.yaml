@@ -15,6 +15,7 @@ requirements:
   run:
     - bash
     - python  # Only if your scripts call Python
+    - conda-verify
     - blast
     - samtools
     - ca-certificates
