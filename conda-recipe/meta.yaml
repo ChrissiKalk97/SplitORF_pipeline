@@ -12,7 +12,9 @@ requirements:
   build:
     - bash
     - coreutils
+    # - bioconductor-flowcore
   run:
+    # - bioconductor-flowcore
     - bash
     - python  # Only if your scripts call Python
     - blast
@@ -27,6 +29,7 @@ requirements:
     - diamond
     - matplotlib
     - seaborn
+    - polars
     - certifi
     - ipykernel
     - gffread
@@ -34,12 +37,13 @@ requirements:
     - jq
     - r-base
     - r-essentials
-    - bioconductor-cmapr
+    # - bioconductor-cmapr
     - r-ggplot2
     - r-geomtextpath
     - r-tidyr
     - r-stringr
     - r-dplyr
+    - r-seqinr
     - r-gridextra
     - r-svglite
     - r-venndiagram
