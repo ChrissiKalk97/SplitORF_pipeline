@@ -24,13 +24,6 @@ packages <- c("seqinr", "ggplot2", "geomtextpath", "tidyr", "stringr", "dplyr", 
 
 # Install and load all
 invisible(lapply(packages, install_and_load))
-
-
-# library(seqinr)
-# library(ggplot2)
-# library(geomtextpath)
-# library(tidyr)
-# library(stringr)
 ```
 This report shows a number of summary statistics of the a result file obtained from the [Split-ORFs](https://github.com/ChrissiKalk97/SplitORF_pipeline.git) software.
 
@@ -43,12 +36,6 @@ datapath=getwd()
 file1 = paste0(datapath,params[[1]][[1]]) # valid protein orf pairs
 file2 = paste0(datapath,params[[1]][[2]]) # unique protein orf pairs
 file3 = paste0(params[[1]][[3]]) # transcripts
-
-# file1=paste0(datapath,"/Output/run_13.01.2026-11.44.16_NMD_CDS_subtraction_minAlignLength_15/ValidProteinORFPairs_sortCol3.txt")
-
-# file2=paste0(datapath,"/Output/run_13.01.2026-11.44.16_NMD_CDS_subtraction_minAlignLength_15/UniqueProteinORFPairs_annotated.txt")
-
-# file3=paste0(datapath,"/Input2023/NMD_transcripts_CDNA.fa")
 
 file_dir=dirname(file1)
 
