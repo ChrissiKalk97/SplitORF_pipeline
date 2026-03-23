@@ -1,4 +1,4 @@
----
+ ---
 title: "Split-ORF Report"
 date: "`r format(Sys.time(), '%d %B %Y')`"
 output: html_document
@@ -24,6 +24,13 @@ packages <- c("seqinr", "ggplot2", "geomtextpath", "tidyr", "stringr", "dplyr", 
 
 # Install and load all
 invisible(lapply(packages, install_and_load))
+
+
+# library(seqinr)
+# library(ggplot2)
+# library(geomtextpath)
+# library(tidyr)
+# library(stringr)
 ```
 This report shows a number of summary statistics of the a result file obtained from the [Split-ORFs](https://github.com/ChrissiKalk97/SplitORF_pipeline.git) software.
 
