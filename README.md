@@ -7,6 +7,9 @@ The Split-ORF pipeline predicts possible Split-ORF transcripts in a user defined
 Additionally, DNA and protein unique regions are predicted for the Split-ORFs. These regions do not occur in any
 other annotated protein coding transcript. 
 
+## Conda package
+We are currently working on a conda package for the Split-ORF pipeline. This should be available within the next two months (state: 23.03.2026).
+
 ## Dependencies
 For the html reports of the Split-ORF pipeline, R and the following packages are required:
 - seqinr  
