@@ -28,7 +28,7 @@ while getopts ':h' option; do
   shift 2
 done
 
-if [[ $# -ne 6 ]]; then #check for right number of arguments
+if [[ $# -ne 7 ]]; then #check for right number of arguments
   echo -e "${RED}
   ERROR while executing the script!
   Wrong number of arguments.${NC}"

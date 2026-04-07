@@ -9,12 +9,6 @@ params:
 ---
 The following document is a report on the alignment of multiple Ribo-Seq datasets against the transcriptome. This alignment was intersected with the unique regions of the SplitORFs of NMD and RI transcripts, as calculated in the SplitORFs pipeline. Random regions of the 3' and 5' UTR with the same length distribution as the unique regions were created and intersected with the alignment as well. These serve as the null distribution, or background noise, as these regions should not be actively translated. From the null distribution a threshold is calculated as the upper limit of the 95% CI to classify whether the unique regions are found more often than expected by random chance.
 
-```{r, echo=FALSE, libraries, message=FALSE}
-# setwd("/home/ckalk/scripts/SplitORFs/Riboseq/Riboseq_validation/genomic/resample_random")
-# source("helper_functions_Riboseq_report_update_expression_filter_multiple_test_correction.R")
-source("helper_functions_Riboseq_report_tpm_filter_multitest.R")
-```
-
 # Calculate the null distribution for the unique Split-ORF regions
 
 ```{r}
@@ -22,10 +16,15 @@ args <- params[[1]]
 path <- args[[1]]
 SO_pipe_path <- args[[2]]
 unique_region_type <- args[[3]]
+script_path <- args[[4]]
+cat(path, file = stderr())
+cat(SO_pipe_path, file = stderr())
+cat(unique_region_type, file = stderr())
+cat(script_path, file = stderr())
+```
 
-# unique_region_type <- "HUVEC_TAMA"
-# SO_pipe_path <- "/home/ckalk/tools/SplitORF_pipeline/Output/run_12.09.2025-17.51.04_HUVEC_tama_merged"
-# path <- "/projects/splitorfs/work/Riboseq/Output/Riboseq_genomic_single_samples/resample_q10_huvec_tama_19_09_25"
+```{r, echo=FALSE, libraries, message=FALSE}
+source(file.path(script_path, "helper_functions_Riboseq_report_tpm_filter_multitest.R"))
 ```
 
 

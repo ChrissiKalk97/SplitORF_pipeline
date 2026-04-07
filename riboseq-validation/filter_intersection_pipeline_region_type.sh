@@ -84,7 +84,7 @@ if [[ ! -e  "${outdir}"/"${sample_name}_${region_type}_intersect_counts_sorted.b
 
 
     threeprime_basename=$(basename "$three_primes" .bed)
-    if [[ ! -e "${outdir}/"${threeprime_basename}"${sample_name}.bed" ]]; then
+    if [[ ! -e "${outdir}/${threeprime_basename}_${sample_name}.bed" ]]; then
         # echo "$three_primes"
         # echo "${outdir}/${sample_name}_${region_type}_htseq_counts.tsv"
         # echo "$ensembl_gtf"
@@ -95,12 +95,12 @@ if [[ ! -e  "${outdir}"/"${sample_name}_${region_type}_intersect_counts_sorted.b
             20
     fi
 
-    if [[ ! -e  "${outdir}"/Unique_DNA_Regions_genomic_CDS_subtraction_${sample_name}.bed ]]; then
-    # echo "$unique_region_dir/Unique_DNA_Regions_genomic_CDS_subtraction.bed"
+    if [[ ! -e  "${outdir}/Unique_DNA_Regions_genomic_final_${sample_name}.bed" ]]; then
+    # echo "$unique_region_dir/Unique_DNA_Regions_genomic_final.bed"
     # echo "${outdir}/${sample_name}_${region_type}_htseq_counts.tsv"
     # echo "$ensembl_gtf"
         python "${script_path}"/filter_bed_file_for_expressed_genes_rnanrom.py \
-            "$unique_region_dir/Unique_DNA_Regions_genomic_CDS_subtraction.bed" \
+            "$unique_region_dir/Unique_DNA_Regions_genomic_final.bed" \
             "${outdir}/${sample_name}_${region_type}_htseq_counts.tsv" \
             "$ensembl_gtf" \
             20
@@ -116,7 +116,7 @@ if [[ ! -e  "${outdir}"/"${sample_name}_${region_type}_intersect_counts_sorted.b
     fi
 
     bash "${script_path}"/riboseq_coverage_3UTRs_vs_CDS_16_12_25.sh -b "${bam}" -c "${cds_coordinates_tpm_filtered}" \
-    -s "${sample_name}" -t "${outdir}"/"${threeprime_basename}""${sample_name}".bed -p "${script_path}"
+    -s "${sample_name}" -t "${outdir}"/"${threeprime_basename}"_"${sample_name}".bed -p "${script_path}"
 
     # implement a filter that only conducts the empiricial intersection pipeline
     # if a certain read depth is found
@@ -138,11 +138,12 @@ if [[ ! -e  "${outdir}"/"${sample_name}_${region_type}_intersect_counts_sorted.b
         echo "$sample_name"
         "${script_path}"/empirical_intersection_steps_expressed_genes_filter_18_11_25.sh  \
             "$intersection_input" \
-            "${outdir}"/Unique_DNA_Regions_genomic_CDS_subtraction_"${sample_name}".bed \
+            "${outdir}"/Unique_DNA_Regions_genomic_final_"${sample_name}".bed \
             "${outdir}"/3_primes_filtered_for_CDS_distribution_"${sample_name}"_merged.bed \
             "${outdir}/${sample_name}_${region_type}" \
             "${outdir}" \
-            "${genome_fasta}"
+            "${genome_fasta}" \
+            "${script_path}"
 
         echo "===================       Sample "$sample_name" intersected"
     fi

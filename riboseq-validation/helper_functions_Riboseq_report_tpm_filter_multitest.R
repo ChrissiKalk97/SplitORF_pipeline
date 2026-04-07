@@ -32,7 +32,6 @@
 
 
 library(glue)
-library(types)
 library(stringr)
 library(dplyr)
 library(UpSetR)
@@ -104,7 +103,6 @@ calculate_background_rank_counts <- function(unique_region_type = `?`(character)
     ranked_random_frames <- list()
     for (i in seq_along(randomdataframes)) {
       randomframe <- randomdataframes[[i]]
-      # print(names(randomdataframes)[[i]])
 
       colnames(randomframe) <- c(
         "chr_background", "start",
@@ -317,7 +315,6 @@ get_relative_ur_intersect_counts <- function(dataframes) {
             "region_type"
         )
 
-        # print(processed_frame$genomic_region)
         frames_preprocessed[[length(frames_preprocessed) +
             1]] <- processed_frame
         genomic_frames[[length(genomic_frames) +
@@ -447,7 +444,6 @@ get_top_5_unique_regions <- function(dataframes_list_genomic) {
       unique_region_frame$ID <-
         gsub("\\|", "-", unique_region_frame$ID)
       
-      # print(unique_region_frame[1:5, ])
       
       print(kable(unique_region_frame[1:5, ],
             caption = names(dataframes_list_genomic)[j],

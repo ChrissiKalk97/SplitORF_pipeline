@@ -38,7 +38,7 @@ def main(bed_file_to_filter, htseq_counts, gtf_path, tpm_threshold):
     bed_file_name = os.path.basename(bed_file_to_filter).removesuffix('.bed')
 
     bed_file_to_filter_df = pd.read_csv(
-        bed_file_to_filter, sep='\t', header=None)
+        bed_file_to_filter, sep='\t', header=None, low_memory=False)
     bed_file_to_filter_df['Gene_name'] = bed_file_to_filter_df.iloc[:, 3].apply(
         lambda x: x.split('|')[0])
 

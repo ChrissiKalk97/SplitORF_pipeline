@@ -13,10 +13,10 @@ ls -l "$CONFIG"
 output_star=$(jq -r '.output_star' "$CONFIG")
 unique_region_dir=$(jq -r '.unique_region_dir' "$CONFIG")
 ensembl_gtf=$(jq -r '.ensembl_gtf' "$CONFIG")
-filtered_gtf=$(jq -r '.filtered_gtf' "$CONFIG")
 genome_fasta=$(jq -r '.genome_fasta' "$CONFIG")
 input_fastq_path=$(jq -r '.input_fastq_path' "$CONFIG")
 three_primes=$(jq -r '.three_primes' "$CONFIG")
+cds_coordinates=$(jq -r '.cds_coordinates' "$CONFIG")
 output_dir=$(jq -r '.output_dir' "$CONFIG")
 # script_path=$(jq -r '.script_path' "$CONFIG")
 ribo_pipe_path=$(jq -r '.ribo_pipe_path' "$CONFIG")
@@ -24,6 +24,8 @@ input_name=$(jq -r '.input_name' "$CONFIG")
 region_type=$(jq -r '.region_type' "$CONFIG")
 bam_ending=$(jq -r '.bam_ending' "$CONFIG")
 tmp_dir=$(jq -r '.tmp_dir' "$CONFIG")
+report=$(jq -r '.report // empty' "$CONFIG")
+duplicated=$(jq -r '.duplicated' "$CONFIG")
 
 script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -44,31 +46,35 @@ script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # input_name="NMD"
 # region_type="NMD"
 
-bash "${script_path}"/run_Riboseq_validation_pipeline.sh \
-    -b "$bam_ending" \
-    -c "$cds_coordinates" \
-    -d "$tmp_dir" \
-    -e "$ensembl_gtf" \
-    -f "$filtered_gtf" \
-    -g "$genome_fasta" \
-    -i "$input_fastq_path" \
-    -n "$input_name" \
-    -o "$output_star" \
-    -r "$region_type" \
-    -s "$script_path" \
-    -t "$three_primes" \
-    -u "$unique_region_dir"
+# bash "${script_path}"/run_Riboseq_validation_pipeline.sh \
+#     -b "$bam_ending" \
+#     -c "$cds_coordinates" \
+#     -d "$duplicated" \
+#     -e "$ensembl_gtf" \
+#     -g "$genome_fasta" \
+#     -i "$input_fastq_path" \
+#     -n "$input_name" \
+#     -o "$output_star" \
+#     -p "$tmp_dir" \
+#     -r "$region_type" \
+#     -s "$script_path" \
+#     -t "$three_primes" \
+#     -u "$unique_region_dir"
+   
 
 
  
 
-if [ ! -e "${output_star}/Riboseq_report_NMD_3prime_CDS_quantile_filter_20bp_windows_13_01_26.pdf" ]; then
-    export LD_LIBRARY_PATH=/opt/intel/oneapi/mkl/2022.0.2/lib/intel64:$LD_LIBRARY_PATH
-    export MKL_ENABLE_INSTRUCTIONS=SSE4_2
+if [ -n "$report" ]; then
+    # export LD_LIBRARY_PATH=/opt/intel/oneapi/mkl/2022.0.2/lib/intel64:$LD_LIBRARY_PATH
+    # export MKL_ENABLE_INSTRUCTIONS=SSE4_2
 
-    Rscript -e 'if (!requireNamespace("rmarkdown", quietly = TRUE)) install.packages("rmarkdown", repos="http://cran.us.r-project.org")'
-
-    R -e 'library(rmarkdown); rmarkdown::render(input = "${script_path}/RiboSeqReportGenomic_iteration_update_expression_filter_multiple_test_correction.Rmd", output_file = "/projects/splitorfs/work/Riboseq/Output/Riboseq_genomic_single_samples/resample_q10_expression_filter/Riboseq_report_NMD_filter_sample_5mio_threshold_21_01_26.pdf", params=list(args = c("/projects/splitorfs/work/Riboseq/Output/Riboseq_genomic_single_samples/resample_q10_expression_filter/NMD_genome", "/home/ckalk/tools/SplitORF_pipeline/Output/run_13.01.2026-11.44.16_NMD_CDS_subtraction_minAlignLength_15", "NMD")))'
+    # Rscript -e 'if (!requireNamespace("rmarkdown", quietly = TRUE)) install.packages("rmarkdown", repos="http://cran.us.r-project.org")'
+    export script_path
+    export output_star
+    export region_type
+    export unique_region_dir
+    R -e 'library(rmarkdown); rmarkdown::render(input = file.path(Sys.getenv("script_path"), "RiboSeqReportGenomic_iteration_update_expression_filter_multiple_test_correction.Rmd"), output_file = Sys.getenv("report"), params=list(args = c(file.path(Sys.getenv("output_star"), paste(Sys.getenv("region_type"), "genome", sep = "_")), Sys.getenv("unique_region_dir"), Sys.getenv("region_type"), Sys.getenv("script_path"))))'
 fi
 
 

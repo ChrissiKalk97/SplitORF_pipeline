@@ -39,7 +39,7 @@ where:
 "
 
 # available options for the programm
-while getopts 'b:c:d:e:f:g:hi:n:o:r:s:t:u:' option; do
+while getopts 'b:c:d:e:g:hi:n:o:p:r:s:t:u:' option; do
   case "$option" in
     b)
         bam_ending="$OPTARG"
@@ -48,13 +48,10 @@ while getopts 'b:c:d:e:f:g:hi:n:o:r:s:t:u:' option; do
         cds_coordinates="$OPTARG"
         ;;
     d)
-        tmp_dir="$OPTARG"
+        dedup="$OPTARG"
         ;;
     e)
         ensembl_gtf="$OPTARG"
-        ;;
-    f)
-        filtered_gtf="$OPTARG"
         ;;
     g)
         genome_fasta="$OPTARG"
@@ -67,6 +64,9 @@ while getopts 'b:c:d:e:f:g:hi:n:o:r:s:t:u:' option; do
         ;;
     o)
         output_star="$OPTARG"
+        ;;
+    p)
+        tmp_dir="$OPTARG"
         ;;
     r)
         region_type="$OPTARG"
@@ -92,14 +92,14 @@ while getopts 'b:c:d:e:f:g:hi:n:o:r:s:t:u:' option; do
   esac
 done
 
-script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 file_dir="${output_star}/"${input_name}"_genome"
 
 if [ -n "${input_fastq_path}" ]; then
     shopt -s nullglob  # enable nullglob
-    input_fastq_files=("${input_fastq_path}/*.fastq")
+    input_fastq_files=(${input_fastq_path}/*.fastq)
     if [ ${#input_fastq_files[@]} -eq 0 ]; then
-        input_fastq_files=("${input_fastq_path}/*.fq")
+        input_fastq_files=(${input_fastq_path}/*.fq)
         if [ ${#input_fastq_files[@]} -eq 0 ]; then
             echo "Make sure that there are FASTQ files ending in .fq or .fastq in ${input_fastq_path}"  
             echo "Also make sure that the files are not gzipped!"  
@@ -110,13 +110,10 @@ fi
 
 
 
-if [ ! -d "$output_star" ];then
-	mkdir "$output_star"
-fi
+mkdir -p "$output_star"
 
-if [ ! -d "${file_dir}" ];then
-	mkdir "${file_dir}"
-fi
+mkdir -p "$file_dir"
+
 
 
 # if [[ -n "${filtered_gtf}" ]]; then
@@ -143,17 +140,17 @@ if [[ -n "$input_fastq_path" ]]; then
     echo "STAR index genome"
 
     if [ ! -d  "$output_star"/index ]; then
-    bash "${script_path}/STAR_Align_genomic_23_09_25.sh" \
-    -i 50 "$output_star"/index \
-    "$genome_fasta" \
-    "$ensembl_gtf"
+        bash "${script_path}/STAR_Align_genomic_23_09_25.sh" \
+        -i 50 "$output_star"/index \
+        "$genome_fasta" \
+        "$ensembl_gtf"
     fi
 
     echo "Starting alignment against genome"
 
 
     # STAR alignment for the samples that are "normal", no UMI deduplication etc
-    for i in "${input_fastq_path[@]}"; do
+    for i in "${input_fastq_files[@]}"; do
         if [[ "$i" =~ \.fastq$ ]]; then
             sample_name=$(basename "$i" .fastq)
         elif [[ "$i" =~ \.fq$ ]]; then
@@ -162,7 +159,7 @@ if [[ -n "$input_fastq_path" ]]; then
         
         if [[ ! -e  ""${file_dir}"/${sample_name}/${sample_name}_"${input_name}"_chrom_sort.bed" ]]; then
             echo $i
-            mkdir "${file_dir}"/${sample_name}
+            mkdir -p "${file_dir}"/"${sample_name}"
 
             bash "${script_path}/STAR_Align_genomic_23_09_25.sh" \
             -a 16 "$output_star"/index "$i" \
@@ -187,34 +184,44 @@ fi
 # Intersection for the "normal" Ribo-seq files
 # check in the file dir and subfolders for BAM files
 for folder in "$file_dir" "$file_dir"/*/; do
-    echo $folder
-    bams=("$folder"/*"${input_name}""$bam_ending")
-
-    echo $bams
-
+    bams=("$folder"/*"$bam_ending")
     if [[ -e "${bams[0]}" ]]; then
         for bam in $bams; do
          
-            sample_name="$(basename "$bam" _"${input_name}""$bam_ending")"
+            sample_name="$(basename "$bam" "$bam_ending")"
 
-            echo "$sample_name"
-
-                if [ ! -e  "$output_star"/"${region_type}"_genome/${sample_name}/Unique_DNA_Regions_genomic_${sample_name}.bed ]; then
+                if [ ! -e  "$output_star"/"${region_type}"_genome/"${sample_name}"/Unique_DNA_Regions_genomic_"${sample_name}".bed ]; then
                     mkdir -p "${file_dir}/${sample_name}"
-                    bash "${script_path}/"filter_intersection_pipeline_region_type.sh \
-                    -b "$bam" \
-                    -c "$cds_coordinates" \
-                    -e "$ensembl_gtf"\
-                    -g "$genome_fasta" \
-                    -i "${file_dir}/${sample_name}/${sample_name}_${input_name}_chrom_sort.bed" \
-                    -n "${file_dir}/${sample_name}/${sample_name}_${input_name}" \
-                    -o "$output_star" \
-                    -p "$script_path"\
-                    -s "$sample_name" \
-                    -r "${region_type}" \
-                    -t "$three_primes" \
-                    -u "$unique_region_dir" \
-                    -d
+                    if [[ "${dedup}" == "true" ]]; then
+                        bash "${script_path}/"filter_intersection_pipeline_region_type.sh \
+                            -b "$bam" \
+                            -c "$cds_coordinates" \
+                            -e "$ensembl_gtf"\
+                            -g "$genome_fasta" \
+                            -i "${file_dir}/${sample_name}/${sample_name}_${input_name}_chrom_sort.bed" \
+                            -n "${file_dir}/${sample_name}/${sample_name}_${input_name}" \
+                            -o "$output_star" \
+                            -p "$script_path"\
+                            -s "$sample_name" \
+                            -r "${region_type}" \
+                            -t "$three_primes" \
+                            -u "$unique_region_dir" \
+                            -d
+                    else
+                        bash "${script_path}/"filter_intersection_pipeline_region_type.sh \
+                            -b "$bam" \
+                            -c "$cds_coordinates" \
+                            -e "$ensembl_gtf"\
+                            -g "$genome_fasta" \
+                            -i "${file_dir}/${sample_name}/${sample_name}_${input_name}_chrom_sort.bed" \
+                            -n "${file_dir}/${sample_name}/${sample_name}_${input_name}" \
+                            -o "$output_star" \
+                            -p "$script_path"\
+                            -s "$sample_name" \
+                            -r "${region_type}" \
+                            -t "$three_primes" \
+                            -u "$unique_region_dir"
+                    fi
                 fi
         done
     fi
