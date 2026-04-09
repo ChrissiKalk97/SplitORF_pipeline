@@ -92,9 +92,9 @@ while getopts 'b:c:d:e:g:hi:n:o:p:r:s:t:u:' option; do
   esac
 done
 
-# script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-file_dir="${output_star}/"${input_name}"_genome"
-
+mkdir -p "$output_star"
+file_dir="${output_star}/${input_name}_genome"
+mkdir -p "$file_dir"
 if [ -n "${input_fastq_path}" ]; then
     shopt -s nullglob  # enable nullglob
     input_fastq_files=(${input_fastq_path}/*.fastq)
@@ -107,12 +107,6 @@ if [ -n "${input_fastq_path}" ]; then
         fi
     fi
 fi
-
-
-
-mkdir -p "$output_star"
-
-mkdir -p "$file_dir"
 
 
 
@@ -159,6 +153,7 @@ if [[ -n "$input_fastq_path" ]]; then
         
         if [[ ! -e  ""${file_dir}"/${sample_name}/${sample_name}_"${input_name}"_chrom_sort.bed" ]]; then
             echo $i
+            echo "${file_dir}"/"${sample_name}"
             mkdir -p "${file_dir}"/"${sample_name}"
 
             bash "${script_path}/STAR_Align_genomic_23_09_25.sh" \
@@ -179,19 +174,18 @@ fi
 
 
 ################################################################################
-# NMD analysis                                                                 #
+# Ribo-seq unique region and random region intersection                        #
 ################################################################################
 # Intersection for the "normal" Ribo-seq files
 # check in the file dir and subfolders for BAM files
 for folder in "$file_dir" "$file_dir"/*/; do
+    shopt -s nullglob
     bams=("$folder"/*"$bam_ending")
     if [[ -e "${bams[0]}" ]]; then
-        for bam in $bams; do
-         
+        for bam in "${bams[@]}"; do
             sample_name="$(basename "$bam" "$bam_ending")"
-
                 if [ ! -e  "$output_star"/"${region_type}"_genome/"${sample_name}"/Unique_DNA_Regions_genomic_"${sample_name}".bed ]; then
-                    mkdir -p "${file_dir}/${sample_name}"
+                    mkdir -p "$output_star/"${region_type}"_genome/${sample_name}"
                     if [[ "${dedup}" == "true" ]]; then
                         bash "${script_path}/"filter_intersection_pipeline_region_type.sh \
                             -b "$bam" \
@@ -213,7 +207,7 @@ for folder in "$file_dir" "$file_dir"/*/; do
                             -c "$cds_coordinates" \
                             -e "$ensembl_gtf"\
                             -g "$genome_fasta" \
-                            -i "${file_dir}/${sample_name}/${sample_name}_${input_name}_chrom_sort.bed" \
+                            -i "$bam" \
                             -n "${file_dir}/${sample_name}/${sample_name}_${input_name}" \
                             -o "$output_star" \
                             -p "$script_path"\

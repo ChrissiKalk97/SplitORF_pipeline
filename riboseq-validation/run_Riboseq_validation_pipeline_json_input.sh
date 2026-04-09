@@ -14,7 +14,7 @@ output_star=$(jq -r '.output_star' "$CONFIG")
 unique_region_dir=$(jq -r '.unique_region_dir' "$CONFIG")
 ensembl_gtf=$(jq -r '.ensembl_gtf' "$CONFIG")
 genome_fasta=$(jq -r '.genome_fasta' "$CONFIG")
-input_fastq_path=$(jq -r '.input_fastq_path' "$CONFIG")
+input_fastq_path=$(jq -r '.input_fastq_path // empty' "$CONFIG")
 three_primes=$(jq -r '.three_primes' "$CONFIG")
 cds_coordinates=$(jq -r '.cds_coordinates' "$CONFIG")
 output_dir=$(jq -r '.output_dir' "$CONFIG")
@@ -46,34 +46,31 @@ script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # input_name="NMD"
 # region_type="NMD"
 
-# bash "${script_path}"/run_Riboseq_validation_pipeline.sh \
-#     -b "$bam_ending" \
-#     -c "$cds_coordinates" \
-#     -d "$duplicated" \
-#     -e "$ensembl_gtf" \
-#     -g "$genome_fasta" \
-#     -i "$input_fastq_path" \
-#     -n "$input_name" \
-#     -o "$output_star" \
-#     -p "$tmp_dir" \
-#     -r "$region_type" \
-#     -s "$script_path" \
-#     -t "$three_primes" \
-#     -u "$unique_region_dir"
+bash "${script_path}"/run_Riboseq_validation_pipeline.sh \
+    -b "$bam_ending" \
+    -c "$cds_coordinates" \
+    -d "$duplicated" \
+    -e "$ensembl_gtf" \
+    -g "$genome_fasta" \
+    -i "$input_fastq_path" \
+    -n "$input_name" \
+    -o "$output_star" \
+    -p "$tmp_dir" \
+    -r "$region_type" \
+    -s "$script_path" \
+    -t "$three_primes" \
+    -u "$unique_region_dir"
    
 
 
  
 
 if [ -n "$report" ]; then
-    # export LD_LIBRARY_PATH=/opt/intel/oneapi/mkl/2022.0.2/lib/intel64:$LD_LIBRARY_PATH
-    # export MKL_ENABLE_INSTRUCTIONS=SSE4_2
-
-    # Rscript -e 'if (!requireNamespace("rmarkdown", quietly = TRUE)) install.packages("rmarkdown", repos="http://cran.us.r-project.org")'
     export script_path
     export output_star
     export region_type
     export unique_region_dir
+    export report
     R -e 'library(rmarkdown); rmarkdown::render(input = file.path(Sys.getenv("script_path"), "RiboSeqReportGenomic_iteration_update_expression_filter_multiple_test_correction.Rmd"), output_file = Sys.getenv("report"), params=list(args = c(file.path(Sys.getenv("output_star"), paste(Sys.getenv("region_type"), "genome", sep = "_")), Sys.getenv("unique_region_dir"), Sys.getenv("region_type"), Sys.getenv("script_path"))))'
 fi
 
