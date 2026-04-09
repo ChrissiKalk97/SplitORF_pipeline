@@ -190,6 +190,32 @@ def get_so_position_in_transcript(so_df):
     return so_df
 
 
+def identify_middle_unique_regions(row):
+    if len(row['OrfPosition']) > 3:
+        middle_indices = [index for index, position in enumerate(
+            row['OrfPosition']) if position == 'middle']
+        return sum([row['hasUR'][index] for index in middle_indices])
+    elif len(row['OrfPosition']) == 3:
+        return int(row['hasUR'][row['OrfPosition'].index('middle')])
+    else:
+        return 0
+
+
+def format_categorization_df(so_categorization_df):
+    def get_list_cols(so_categorization_df):
+        list_cols = []
+        for col in so_categorization_df.columns:
+            if so_categorization_df[col].apply(lambda x: isinstance(x, list)).any():
+                list_cols.append(col)
+        return list_cols
+
+    list_cols = get_list_cols(so_categorization_df)
+    for col in list_cols:
+        so_categorization_df[col] = so_categorization_df[col].apply(
+            lambda x: ','.join(map(str, x)))
+    return so_categorization_df
+
+
 def so_transcript_categorization(dna_overlapping_ur_df, all_predicted_so_orfs):
     '''
     categorize Split-ORF transcripts by number of unique regions and whether these
@@ -197,15 +223,7 @@ def so_transcript_categorization(dna_overlapping_ur_df, all_predicted_so_orfs):
     regions per transcript (multiple transcript isoforms are counted multiple times).
     Write CSV file of the results.
     '''
-    def identify_middle_unique_regions(row):
-        if len(row['OrfPosition']) > 3:
-            middle_indices = [index for index, position in enumerate(
-                row['OrfPosition']) if position == 'middle']
-            return sum([row['hasUR'][index] for index in middle_indices])
-        elif len(row['OrfPosition']) == 3:
-            return int(row['hasUR'][row['OrfPosition'].index('middle')])
-        else:
-            return 0
+
     all_predicted_so_orfs['hasUR'] = all_predicted_so_orfs['OrfID'].isin(
         dna_overlapping_ur_df['OrfID'])
 
@@ -299,6 +317,8 @@ def identify_overlapping_unique_regions(all_predicted_so_orfs, dna_ur_df, outdir
 
     so_categorization_df, all_predicted_so_orfs = so_transcript_categorization(
         dna_overlapping_ur_df, all_predicted_so_orfs)
+
+    so_categorization_df = format_categorization_df(so_categorization_df)
 
     so_categorization_df.to_csv(os.path.join(
         outdir, 'so_categorization_df.csv'))
