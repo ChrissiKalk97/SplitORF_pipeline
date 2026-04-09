@@ -1,3 +1,39 @@
+"""
+Script: categorize_so_transcripts_by_urs.py
+
+Description:
+    Categorize Split-ORF transcripts by their unique regions in distinct ORFs
+    as well as the position of the ORFs (first, middle, last). Create a dataframe
+    of distinct unique regions as well based on Split-ORf predictions.
+    Write results to CSV files for later analyses and plotting.
+
+Main Steps:
+    1. Load raw data from input files
+    2. Group URs by ORF
+    3. Get position of ORFs
+    4. Generate df of distinct URs
+    5. Generate df with information in which (first,middle,last) ORF URs are present
+    6. Write results to CSV
+
+Usage:
+    python categorize_so_transcripts_by_urs.py --so_results UniqueProteinORFPairs.txt --ur_path Unique_DNA_Regions_genomic_final.bed
+
+Arguments:
+    --so_results     Path to the UniqueProteinORFPairs.txt file from the Split-ORf pipeline
+    --ur_path   Path toUnique_DNA_Regions_genomic_final.bed file from the Split-ORf pipeline
+
+
+Dependencies:
+    - pandas
+
+Author:
+    Christina Kalk
+
+Date:
+    2026-04-09
+"""
+
+
 import os
 import argparse
 import pandas as pd
@@ -10,14 +46,8 @@ def parse_args():
 
     # Required positional arguments
     parser.add_argument("--so_results", help="Path to SO results file")
-    parser.add_argument("--ribo_coverage_path",
-                        help="Path to Ribo-seq coverage directory")
     parser.add_argument("--ur_path",
                         help="Path to Unique region genomic BED file")
-    parser.add_argument("--result_dir",
-                        help="Directory for results")
-    parser.add_argument("--region_type",
-                        help="Directory for results")
 
     return parser.parse_args()
 
@@ -53,6 +83,32 @@ def load_dna_ur_df(UR_path):
     dna_ur_df['OrfTransID'] = dna_ur_df['ID'].str.split(
         ':').apply(lambda x: x[0])
 
+    return dna_ur_df
+
+
+def classify_ur_per_orf_position(dna_ur_df, all_predicted_so_orfs):
+    # group several exonic URs per ORF together, several URs per ORF are also grouped together
+    dna_ur_df = dna_ur_df.groupby('OrfID').agg({'start': 'min',
+                                                'stop': 'max',
+                                                        'chr': 'first',
+                                                        'ID': lambda x: ','.join(x),
+                                                        'OrfTransID': 'first'}).reset_index().copy()
+
+    # map ORF positions to IDs
+    orf_id_position_map = all_predicted_so_orfs.set_index('OrfID')[
+        'OrfPosition']
+    dna_ur_df['OrfPosition'] = dna_ur_df['OrfID'].map(orf_id_position_map
+                                                      )
+
+    # concatenate genomic regions
+    dna_ur_df['genomic_UR'] = dna_ur_df['chr'].astype(
+        str) + '_' + dna_ur_df['start'].astype(str) + '_' + dna_ur_df['stop'].astype(str)
+
+    dna_ur_df['OverlapPercentage'] = 0.0
+    dna_ur_df['OrfPositionsOverlapping'] = dna_ur_df['OrfPosition'].apply(
+        lambda x: set([x]))
+    dna_ur_df['OrfIDsOverlapping'] = dna_ur_df['OrfID'].apply(
+        lambda x: set([x]))
     return dna_ur_df
 
 
@@ -135,8 +191,29 @@ def get_so_position_in_transcript(so_df):
 
 
 def so_transcript_categorization(dna_overlapping_ur_df, all_predicted_so_orfs):
+    '''
+    categorize Split-ORF transcripts by number of unique regions and whether these
+    are in the first, middle or last ORF. Also give information about distinct unique 
+    regions per transcript (multiple transcript isoforms are counted multiple times).
+    Write CSV file of the results.
+    '''
+    def identify_middle_unique_regions(row):
+        if len(row['OrfPosition']) > 3:
+            middle_indices = [index for index, position in enumerate(
+                row['OrfPosition']) if position == 'middle']
+            return sum([row['hasUR'][index] for index in middle_indices])
+        elif len(row['OrfPosition']) == 3:
+            return int(row['hasUR'][row['OrfPosition'].index('middle')])
+        else:
+            return 0
     all_predicted_so_orfs['hasUR'] = all_predicted_so_orfs['OrfID'].isin(
         dna_overlapping_ur_df['OrfID'])
+
+    genomic_ur_dict = dict(
+        zip(dna_overlapping_ur_df['OrfID'], dna_overlapping_ur_df['genomic_UR']))
+
+    all_predicted_so_orfs['genomic_UR'] = all_predicted_so_orfs['OrfID'].map(
+        genomic_ur_dict)
 
     # aggregating together conserves teh order!
     so_categorization_df = all_predicted_so_orfs.groupby('OrfTransID').agg({
@@ -144,6 +221,7 @@ def so_transcript_categorization(dna_overlapping_ur_df, all_predicted_so_orfs):
         'OrfStart': list,
         'geneID': 'first',
         'OrfPosition': list,
+        'genomic_UR': list,
         'hasUR': list}).reset_index().copy()
 
     so_categorization_df['nrOrfs'] = so_categorization_df['OrfID'].apply(
@@ -152,47 +230,28 @@ def so_transcript_categorization(dna_overlapping_ur_df, all_predicted_so_orfs):
         lambda x: sum(x))
 
     so_categorization_df['URInFirstORF'] = so_categorization_df.apply(
-        lambda x: x.loc['hasUR'][x['OrfPosition'].index('first')], axis=1)
+        lambda x: int(x.loc['hasUR'][x['OrfPosition'].index('first')]), axis=1)
     so_categorization_df['URInLastORF'] = so_categorization_df.apply(
-        lambda x: x.loc['hasUR'][x['OrfPosition'].index('last')], axis=1)
-
-    def identify_middle_unique_regions(row):
-        if len(row['OrfPosition']) > 3:
-            return sum(row.loc['hasUR'][row['OrfPosition'].index('middle')]) > 0
-        elif len(row['OrfPosition']) == 3:
-            row.loc['hasUR'][row['OrfPosition'].index('middle')]
-        else:
-            False
+        lambda x: int(x.loc['hasUR'][x['OrfPosition'].index('last')]), axis=1)
 
     so_categorization_df['URInMiddleORF'] = so_categorization_df.apply(
-        lambda x: identify_middle_unique_regions(x))
+        lambda x: identify_middle_unique_regions(x), axis=1)
+
+    # ur == ur filters out nn values
+    so_categorization_df['NrDistinctURs'] = so_categorization_df['genomic_UR'].apply(
+        lambda x: len(set(ur for ur in x if ur == ur)))
 
     return so_categorization_df, all_predicted_so_orfs
 
 
 def identify_overlapping_unique_regions(all_predicted_so_orfs, dna_ur_df, outdir):
-    # group several exonic URs per ORF together, several URs per ORF are also grouped together
-    dna_ur_df = dna_ur_df.groupby('OrfID').agg({'start': 'min',
-                                                'stop': 'max',
-                                                        'chr': 'first',
-                                                        'ID': lambda x: ','.join(x),
-                                                        'OrfTransID': 'first'}).reset_index().copy()
-
-    # map ORF positions to IDs
-    orf_id_position_map = all_predicted_so_orfs.set_index('OrfID')[
-        'OrfPosition']
-    dna_ur_df['OrfPosition'] = dna_ur_df['OrfID'].map(orf_id_position_map
-                                                      )
-
-    # concatenate genomic regions
-    dna_ur_df['genomic_UR'] = dna_ur_df['chr'].astype(
-        str) + '_' + dna_ur_df['start'].astype(str) + '_' + dna_ur_df['stop'].astype(str)
-
-    dna_ur_df['OverlapPercentage'] = 0.0
-    dna_ur_df['OrfPositionsOverlapping'] = dna_ur_df['OrfPosition'].apply(
-        lambda x: set([x]))
-    dna_ur_df['OrfIDsOverlapping'] = dna_ur_df['OrfID'].apply(
-        lambda x: set([x]))
+    '''
+    Categorize Split-ORF transcripts by their unique regions in distinct ORFs
+    as well as the position of the ORFs (first, middle, last). Create a dataframe
+    of distinct unique regions as well based on Split-ORf predictions.
+    Write results to CSV files for later analyses and plotting.
+    '''
+    dna_ur_df = classify_ur_per_orf_position(dna_ur_df, all_predicted_so_orfs)
 
     # get completely overlapping URs
     chr_dfs = {chr: chr_df.reset_index(drop=True).copy(
@@ -239,7 +298,10 @@ def identify_overlapping_unique_regions(all_predicted_so_orfs, dna_ur_df, outdir
         outdir, 'dna_distinct_ur_df.csv'))
 
     so_categorization_df, all_predicted_so_orfs = so_transcript_categorization(
-        dna_distinct_ur_df, all_predicted_so_orfs)
+        dna_overlapping_ur_df, all_predicted_so_orfs)
+
+    so_categorization_df.to_csv(os.path.join(
+        outdir, 'so_categorization_df.csv'))
 
     all_predicted_so_orfs.to_csv(os.path.join(
         outdir, 'all_predicted_so_orfs_position.csv'))
@@ -247,7 +309,7 @@ def identify_overlapping_unique_regions(all_predicted_so_orfs, dna_ur_df, outdir
     return dna_distinct_ur_df
 
 
-def main(so_results, region_type, ur_path):
+def main(so_results, ur_path):
     outdir = os.path.dirname(ur_path)
     # ------------------ LOAD DNA UNIQUE REGIONS ------------------ #
     dna_ur_df = load_dna_ur_df(
@@ -267,10 +329,8 @@ if __name__ == "__main__":
 
     so_results = args.so_results
     ur_path = args.ur_path
-    region_type = args.region_type
 
     # ur_path = '/projects/splitorfs/work/split-orf-prediction/Output/run_07.04.2026-16.05.28_NMD_cont_subtraction/Unique_DNA_Regions_genomic_final.bed'
     # so_results = '/projects/splitorfs/work/split-orf-prediction/Output/run_07.04.2026-16.05.28_NMD_cont_subtraction/UniqueProteinORFPairs.txt'
-    # region_type = 'NMD'
 
-    main(so_results, region_type, ur_path)
+    main(so_results, ur_path)
