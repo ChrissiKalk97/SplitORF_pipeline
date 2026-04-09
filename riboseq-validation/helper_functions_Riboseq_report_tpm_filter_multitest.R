@@ -567,8 +567,6 @@ write_csv <- function(dataframes_genomic, unique_names_per_sample_genomic, dataf
 
 
 Split_ORFs_validation <- function(dataframes, unique_names_per_sample, path) {
-    # create empty dataframe to concatenate the dfs
-    df <- data.frame(matrix(ncol = 11, nrow = 0))
     # Assign column names
 
     frame_number <- 1
@@ -581,33 +579,38 @@ Split_ORFs_validation <- function(dataframes, unique_names_per_sample, path) {
         unique_region_frame <- unique_region_frame %>%
             filter(significant == 1)
 
-        unique_region_frame$name <- sapply(strsplit(unique_region_frame$name, ":"), `[`, 1)
+        if (nrow(unique_region_frame) > 0) {
+            unique_region_frame$transcript <- sapply(strsplit(unique_region_frame$name, ":"), `[`, 1)
+            unique_region_frame$orf <- sapply(strsplit(unique_region_frame$name, ":"), `[`, 2)
 
-        SO_2_uniques_validated <- unique_region_frame %>%
-            group_by(name) %>%
-            filter(n() >= 2) %>%
-            ungroup() %>%
-            arrange(name)
-
-        write.csv(SO_2_uniques_validated[, c(
-            "name",
-            "distinct_ribo_count",
-            "len",
-            "chr_unique",
-            "start",
-            "stop",
-            "new_name",
-            "num_reads",
-            "p_value",
-            "q_value",
-            "relative_count"
-        )], file.path(path, paste0(names(dataframes)[frame_number], "_two_regions_validated_on_transcript.csv")))
-        frame_number <- frame_number + 1
-        df <- rbind(df, unique_region_frame)
-    }
-    df <- df %>%
-        group_by(name) %>%
-        filter(n() >= 2) %>%
-        ungroup() %>%
-        arrange(name)
+            SO_2_uniques_validated <- unique_region_frame %>%
+                group_by(transcript) %>%
+                summarise(
+                  across(everything(), first),
+                  ribo_cov_orfs = n_distinct(orf)) %>%
+                filter(ribo_cov_orfs >= 2) %>%
+                ungroup() %>%
+                arrange(transcript)
+            
+            if (nrow(SO_2_uniques_validated) > 0) {
+              write.csv(SO_2_uniques_validated[, c(
+                  "transcript",
+                  "orf",
+                  "distinct_ribo_count",
+                  "len",
+                  "chr_unique",
+                  "start",
+                  "stop",
+                  "new_name",
+                  "num_reads",
+                  "p_value",
+                  "q_value",
+                  "relative_count"
+              )], file.path(path, paste0(names(dataframes)[frame_number], "_two_regions_validated_on_transcript.csv")))
+              frame_number <- frame_number + 1
+            }
+        }
+  }
 }
+
+        

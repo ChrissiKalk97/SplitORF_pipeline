@@ -17,10 +17,6 @@ path <- args[[1]]
 SO_pipe_path <- args[[2]]
 unique_region_type <- args[[3]]
 script_path <- args[[4]]
-cat(path, file = stderr())
-cat(SO_pipe_path, file = stderr())
-cat(unique_region_type, file = stderr())
-cat(script_path, file = stderr())
 ```
 
 ```{r, echo=FALSE, libraries, message=FALSE}
