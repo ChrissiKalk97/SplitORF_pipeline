@@ -96,9 +96,9 @@ if [[ ! -e  "${outdir}"/"${sample_name}_${region_type}_intersect_counts_sorted.b
     fi
 
     if [[ ! -e  "${outdir}/Unique_DNA_Regions_genomic_final_${sample_name}.bed" ]]; then
-    # echo "$unique_region_dir/Unique_DNA_Regions_genomic_final.bed"
-    # echo "${outdir}/${sample_name}_${region_type}_htseq_counts.tsv"
-    # echo "$ensembl_gtf"
+    echo "$unique_region_dir/Unique_DNA_Regions_genomic_final.bed"
+    echo "${outdir}/${sample_name}_${region_type}_htseq_counts.tsv"
+    echo "$ensembl_gtf"
         python "${script_path}"/filter_bed_file_for_expressed_genes_rnanrom.py \
             "$unique_region_dir/Unique_DNA_Regions_genomic_final.bed" \
             "${outdir}/${sample_name}_${region_type}_htseq_counts.tsv" \
@@ -106,7 +106,7 @@ if [[ ! -e  "${outdir}"/"${sample_name}_${region_type}_intersect_counts_sorted.b
             20
     fi
         
-    cds_coordinates_tpm_filtered="${output_star}/${region_type}_genome/${sample_name}/"$(basename "${cds_coordinates}" .bed)_"${sample_name}".bed
+    cds_coordinates_tpm_filtered="${outdir}/"$(basename "${cds_coordinates}" .bed)_"${sample_name}".bed
     if [[ ! -e "${cds_coordinates_tpm_filtered}" ]]; then
         python "${script_path}"/filter_bed_file_for_expressed_genes_rnanrom.py \
             "${cds_coordinates}" \
