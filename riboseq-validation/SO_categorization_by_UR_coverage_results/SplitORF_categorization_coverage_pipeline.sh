@@ -33,14 +33,25 @@ if [[ ! -d "${outdir}/NMD" ]]; then
         --sample_type "NMD_inhibition"
 fi
 
-# if [[ ! -d "${outdir}/RI" ]]; then
-#     python so_categorization_coverage_pipeline.py \
-#         --so_results "/home/ckalk/tools/SplitORF_pipeline/Output/run_26.01.2026-14.09.13_RI_for_paper/UniqueProteinORFPairs.txt" \
-#         --ribo_coverage_path "/projects/splitorfs/work/Riboseq/Output/Riboseq_genomic_single_samples/resample_q10_expression_filter/RI_genome" \
-#         --ur_path "/home/ckalk/tools/SplitORF_pipeline/Output/run_26.01.2026-14.09.13_RI_for_paper/Unique_DNA_Regions_genomic_final.bed" \
-#         --result_dir "/projects/splitorfs/work/Riboseq/Output/Riboseq_genomic_single_samples/resample_q10_expression_filter/SO_validated_set_analysis" \
-#         --region_type "RI"
-# fi
+if [[ ! -d "${outdir}/RI" ]]; then
+    python so_categorization_coverage_pipeline.py \
+        --so_results "/projects/splitorfs/work/split-orf-prediction/Output/run_07.04.2026-16.10.51_RI_contamination_subtraction/UniqueProteinORFPairs.txt" \
+        --so_categorization_df "/projects/splitorfs/work/split-orf-prediction/Output/run_07.04.2026-16.10.51_RI_contamination_subtraction/so_categorization_df.csv" \
+        --ribo_coverage_path "/projects/splitorfs/work/Riboseq/Output/Riboseq_genomic_single_samples/test_Ribo_val_conda/RI_genome" \
+        --ur_path "/projects/splitorfs/work/split-orf-prediction/Output/run_07.04.2026-16.10.51_RI_contamination_subtraction/Unique_DNA_Regions_genomic_final.bed" \
+        --result_dir "/projects/splitorfs/work/Riboseq/Output/Riboseq_genomic_single_samples/test_Ribo_val_conda/RI_genome" \
+        --region_type "RI" \
+        --sample_type "control"
+
+    python so_categorization_coverage_pipeline.py \
+        --so_results "/projects/splitorfs/work/split-orf-prediction/Output/run_07.04.2026-16.10.51_RI_contamination_subtraction/UniqueProteinORFPairs.txt" \
+        --so_categorization_df "/projects/splitorfs/work/split-orf-prediction/Output/run_07.04.2026-16.10.51_RI_contamination_subtraction/so_categorization_df.csv" \
+        --ribo_coverage_path "/projects/splitorfs/work/Riboseq/Output/Riboseq_genomic_single_samples/test_Ribo_val_conda/RI_genome" \
+        --ur_path "/projects/splitorfs/work/split-orf-prediction/Output/run_07.04.2026-16.10.51_RI_contamination_subtraction/Unique_DNA_Regions_genomic_final.bed" \
+        --result_dir "/projects/splitorfs/work/Riboseq/Output/Riboseq_genomic_single_samples/test_Ribo_val_conda/RI_genome" \
+        --region_type "RI" \
+        --sample_type "NMD_inhibition"
+fi
 
 
 if [[ "${rbpdb}" == true ]]; then 

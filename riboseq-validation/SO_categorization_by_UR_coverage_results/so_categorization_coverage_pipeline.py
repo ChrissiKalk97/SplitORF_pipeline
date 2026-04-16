@@ -11,7 +11,8 @@ from helper_functions_analysis_categorization import explode_so_df, \
     val_perc_first_middle_last_orfs_csv, count_orfs_by_position, \
     identify_overlapping_unique_regions, validated_so_per_sample_analysis, \
     add_sample_info_ur_df, split_orf_coverage_by_categorization
-from plotting import plot_val_so_sets, plot_three_category_pie, plot_sunburst_ribo_cov_orf
+from plotting import plot_val_so_sets, plot_three_category_pie, plot_sunburst_ribo_cov_orf, \
+    plot_possible_ribocov_information_pie
 
 
 def parse_args():
@@ -68,9 +69,12 @@ def main(so_results, ribo_coverage_path, region_type, ur_path, outdir, so_catego
         dna_ur_df, validated_so_df, ribo_coverage_path, outdir, region_type, sample_type)
 
     so_categorization_df['expressed'] = so_categorization_df['geneID'].apply(
-        lambda x: 'expressed' if x in genes_to_keep else 'not expressed')
+        lambda x: 'ribocov gene' if x in genes_to_keep else 'not ribocov gene')
 
     plot_sunburst_ribo_cov_orf(
+        so_categorization_df, outdir, region_type, sample_type)
+
+    plot_possible_ribocov_information_pie(
         so_categorization_df, outdir, region_type, sample_type)
 
     so_categorization_two_orfs_cov_df = so_categorization_df[
